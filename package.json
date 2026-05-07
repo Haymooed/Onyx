@@ -1,7 +1,7 @@
 {
-  "name": "rpcustom",
-  "version": "1.0.0",
-  "description": "RPcustom — Standalone Discord RPC with Admin Panel + Quest Automation",
+  "name": "onyx-panel",
+  "version": "1.3.0",
+  "description": "Onyx — Discord automation suite: RPC, quests, scheduled messages, auto-reply, and more.",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {

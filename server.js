@@ -25,7 +25,7 @@ const DEFAULT_CONFIG = {
     rpc: {
         enabled: true,
         type: 'PLAYING',
-        name: 'RPcustom',
+        name: 'Onyx',
         details: '',
         state: '',
         stream_url: 'https://twitch.tv/discord',
@@ -156,7 +156,7 @@ function buildPresence(cfg) {
 
     const act = {
         type: (rpc.type || 'PLAYING').toUpperCase(),
-        name: rpc.name || 'RPcustom'
+        name: rpc.name || 'Onyx'
     };
 
     if (rpc.application_id) act.application_id = rpc.application_id;
@@ -763,7 +763,7 @@ const PORT = process.env.SERVER_PORT || process.env.PORT || 3000;
 
 if (!isVercel) {
     app.listen(PORT, () => {
-        console.log(`[RPcustom] Panel running on port ${PORT}  password: ${getPanelPass()}`);
+        console.log(`[Onyx] Panel running on port ${PORT}  password: ${getPanelPass()}`);
     });
 }
 

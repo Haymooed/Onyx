@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RPcustom Panel</title>
+<title>Onyx Panel</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -175,7 +175,7 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
     <div class="brand-icon">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
     </div>
-    <h1>RPcustom</h1>
+    <h1>Onyx</h1>
   </div>
   <div class="topbar-right">
     <a href="/logout"><i class="fas fa-right-from-bracket"></i> Logout</a>
@@ -228,12 +228,12 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
       </div>
     </div>
     <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>App Name</label><input type="text" id="rpc_name" placeholder="RPcustom" oninput="livePreview()"></div>
+      <div class="field"><label>App Name</label><input type="text" id="rpc_name" placeholder="Onyx" oninput="livePreview()"></div>
       <div class="field"><label>Application ID <span style="color:var(--text-muted)">(optional)</span></label><input type="text" id="rpc_application_id" placeholder="Discord App ID"></div>
     </div>
     <div class="grid2" style="margin-top:12px">
       <div class="field"><label>Details (line 1)</label><input type="text" id="rpc_details" placeholder="Doing something cool" oninput="livePreview()"></div>
-      <div class="field"><label>State (line 2)</label><input type="text" id="rpc_state" placeholder="with RPcustom" oninput="livePreview()"></div>
+      <div class="field"><label>State (line 2)</label><input type="text" id="rpc_state" placeholder="with Onyx" oninput="livePreview()"></div>
     </div>
     <div class="toggle-row" style="margin-top:10px">
       <div class="tl-label">Show Elapsed Timer<small>Displays how long the activity has been active</small></div>
@@ -257,7 +257,7 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
       <div class="prev-img" id="prevImg"><i class="fas fa-image"></i></div>
       <div>
         <div class="prev-type" id="prevType">PLAYING</div>
-        <div class="prev-name" id="prevName">RPcustom</div>
+        <div class="prev-name" id="prevName">Onyx</div>
         <div class="prev-details" id="prevDetails" style="display:none"></div>
         <div class="prev-state" id="prevState" style="display:none"></div>
       </div>
@@ -593,7 +593,7 @@ async function pollStatus(){
 setInterval(pollStatus,5000);
 
 function livePreview(){
-  const type=gv('rpc_type'),name=gv('rpc_name')||'RPcustom',det=gv('rpc_details'),st=gv('rpc_state'),img=gv('rpc_large_image');
+  const type=gv('rpc_type'),name=gv('rpc_name')||'Onyx',det=gv('rpc_details'),st=gv('rpc_state'),img=gv('rpc_large_image');
   $('prevType').textContent=type; $('prevName').textContent=name;
   const de=$('prevDetails'),se=$('prevState');
   de.textContent=det;de.style.display=det?'block':'none';
