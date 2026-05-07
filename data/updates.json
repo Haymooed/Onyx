@@ -1,6 +1,18 @@
 {
   "updates": [
     {
+      "version": "1.3.0",
+      "date": "2026-05-07",
+      "title": "Rebrand to Onyx",
+      "tag": "major",
+      "changes": [
+        "RPcustom is now Onyx — same project, new identity that better fits the full automation suite.",
+        "Updated panel, landing page, logs, and default RPC name to the new brand.",
+        "package.json renamed to onyx-panel.",
+        "GitHub repo URL updated in the landing footer."
+      ]
+    },
+    {
       "version": "1.2.0",
       "date": "2026-05-07",
       "title": "Automation & Mobile Update",
