@@ -528,6 +528,7 @@ footer{
 
   <div class="nav-links">
     <a href="#features">Features</a>
+    <a href="#updates">Updates</a>
 
     <a
       href="https://link-center.net/5607385/OaDKtuNYFP4y"
@@ -710,6 +711,76 @@ footer{
   </div>
 </section>
 
+<!-- UPDATES -->
+<section id="updates" class="section">
+  <div class="section-head fade-up">
+    <span class="section-tag">// changelog</span>
+    <h2>Latest Updates</h2>
+    <p>What's new in RPcustom — pulled live from <code>updates.json</code>.</p>
+  </div>
+
+  <div class="updates-list fade-up" id="updates-list">
+    <div class="updates-loading">Loading updates…</div>
+  </div>
+</section>
+
+<style>
+.updates-list{max-width:880px;margin:0 auto;padding:0 24px;display:grid;gap:18px}
+.update-card{background:linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;padding:24px;
+  transition:.25s;position:relative;overflow:hidden}
+.update-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.update-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.update-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.update-version{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent);
+  padding:3px 9px;background:rgba(0,212,255,.08);border:1px solid var(--border2);border-radius:6px}
+.update-date{font-family:'DM Mono',monospace;font-size:.74rem;color:var(--muted)}
+.update-tag{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 9px;border-radius:99px}
+.tag-major{background:rgba(139,92,246,.12);color:#b794f4;border:1px solid rgba(139,92,246,.3)}
+.tag-feature{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid var(--border2)}
+.tag-release{background:rgba(0,217,126,.1);color:#34d399;border:1px solid rgba(0,217,126,.3)}
+.update-title{font-size:1.4rem;font-weight:700;margin-bottom:14px;color:#fff;letter-spacing:-.01em}
+.update-changes{list-style:none;display:grid;gap:8px}
+.update-changes li{padding-left:22px;position:relative;color:var(--text);font-size:.92rem;line-height:1.55}
+.update-changes li::before{content:'▸';position:absolute;left:0;top:0;color:var(--accent);font-weight:700}
+.updates-loading{text-align:center;color:var(--muted);padding:40px;font-family:'DM Mono',monospace}
+@media(max-width:560px){
+  .update-card{padding:18px}
+  .update-title{font-size:1.15rem}
+  .update-changes li{font-size:.86rem}
+}
+</style>
+
+<script>
+(async function(){
+  try {
+    const res = await fetch('/api/updates').catch(()=>fetch('/data/updates.json'));
+    const data = res.ok ? await res.json() : await fetch('data/updates.json').then(r=>r.json());
+    const list = document.getElementById('updates-list');
+    const updates = data.updates || [];
+    if (!updates.length) { list.innerHTML = '<div class="updates-loading">No updates yet.</div>'; return; }
+    list.innerHTML = updates.map(u => `
+      <article class="update-card">
+        <div class="update-head">
+          <span class="update-version">v${u.version}</span>
+          <span class="update-date">${u.date}</span>
+          ${u.tag ? `<span class="update-tag tag-${u.tag}">${u.tag}</span>` : ''}
+        </div>
+        <h3 class="update-title">${u.title}</h3>
+        <ul class="update-changes">
+          ${(u.changes||[]).map(c=>`<li>${c}</li>`).join('')}
+        </ul>
+      </article>
+    `).join('');
+  } catch (e) {
+    document.getElementById('updates-list').innerHTML =
+      '<div class="updates-loading">Could not load updates.</div>';
+  }
+})();
+</script>
+
 <!-- FOOTER -->
 <footer>
 
@@ -736,6 +807,10 @@ footer{
 
     <a href="#features">
       Features
+    </a>
+
+    <a href="#updates">
+      Updates
     </a>
 
     <a

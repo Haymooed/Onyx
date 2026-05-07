@@ -9,6 +9,10 @@ const path = require('path');
 const yaml = require('js-yaml');
 const { Client } = require('discord.js-selfbot-v13');
 const QuestManagerBridge = require('./quests/manager');
+const { GAMES, APPS, PLATFORMS, findGame, findApp, findPlatform } = require('./data/spoofPresets');
+const { MessageScheduler } = require('./automation/messages');
+const { AutoFeatures } = require('./automation/autoFeatures');
+const { purgeOwn, sendTo, massDm } = require('./automation/utility');
 
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
@@ -35,7 +39,21 @@ const DEFAULT_CONFIG = {
         button2_text: '',
         button2_url: '',
         spoof_game: 'none',
-        spoof_app: 'none'
+        spoof_app: 'none',
+        custom_spoof: {
+            enabled: false,
+            application_id: '',
+            name: '',
+            large_image: '',
+            large_text: '',
+            small_image: '',
+            small_text: ''
+        }
+    },
+    custom_status: {
+        enabled: false,
+        text: '',
+        emoji: ''
     }
 };
 
@@ -121,6 +139,9 @@ let configWatcher = null;
 let presenceStart = null;
 let questBridge = null;
 
+const messageScheduler = new MessageScheduler(() => discordClient);
+const autoFeatures = new AutoFeatures();
+
 function isHttpUrl(u) {
     return typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'));
 }
@@ -176,35 +197,72 @@ function buildPresence(cfg) {
 
     const spoofGame = (rpc.spoof_game || 'none').toLowerCase();
     if (spoofGame !== 'none') {
+        const g = findGame(spoofGame);
+        if (g) {
+            act.type = 'PLAYING';
+            act.name = g.name;
+            delete act.details;
+            delete act.state;
+            delete act.buttons;
+            delete act.metadata;
+            act.assets = {};
+            act.timestamps = { start: presenceStart || Date.now() };
+            if (g.appId) act.application_id = g.appId;
+            if (g.icon) act.assets.large_image = g.icon;
+        }
+    }
+
+    const spoofApp = (rpc.spoof_app || 'none').toLowerCase();
+    if (spoofApp !== 'none') {
+        const a = findApp(spoofApp) || findPlatform(spoofApp);
+        if (a) {
+            if (a.appId) act.application_id = a.appId;
+            if (a.platform) act.platform = a.platform;
+            if (!rpc.name) act.name = a.name;
+        }
+    }
+
+    // Custom spoof: takes precedence — user-supplied app id / name / assets
+    const cs = rpc.custom_spoof || {};
+    if (cs.enabled && cs.application_id) {
         act.type = 'PLAYING';
-        act.name = 'RPcustom';
+        act.application_id = String(cs.application_id);
+        if (cs.name) act.name = cs.name;
         delete act.details;
         delete act.state;
         delete act.buttons;
         delete act.metadata;
         act.assets = {};
-        act.timestamps = { start: presenceStart || Date.now() };
-
-        if (spoofGame === 'minecraft') {
-            act.application_id = '1402418491272986635';
-            act.name = 'Minecraft';
-            act.assets.large_image = 'https://cdn.discordapp.com/app-icons/1402418491272986635/166fbad351ecdd02d11a3b464748f66b.png?size=240';
-        } else if (spoofGame === 'genshin') {
-            act.application_id = '762434991303950386';
-            act.name = 'Genshin Impact';
-            act.assets.large_image = 'https://cdn.discordapp.com/app-icons/762434991303950386/eb0e25b739e4fa38c1671a3d1edcd1e0.png?size=240';
+        if (cs.large_image) {
+            act.assets.large_image = cs.large_image;
+            if (cs.large_text) act.assets.large_text = cs.large_text;
         }
-    }
-
-    const spoofApp = (rpc.spoof_app || 'none').toLowerCase();
-    if (spoofApp === 'crunchyroll') {
-        act.application_id = '981509069309354054';
-    } else if (spoofApp === 'playstation') {
-        act.application_id = '1008890872156405890';
-        act.platform = 'ps5';
+        if (cs.small_image) {
+            act.assets.small_image = cs.small_image;
+            if (cs.small_text) act.assets.small_text = cs.small_text;
+        }
+        act.timestamps = { start: presenceStart || Date.now() };
     }
 
     activities.push(act);
+
+    // Custom status (the line under your username) — separate activity
+    const custom = cfg.custom_status || {};
+    if (custom.enabled && (custom.text || custom.emoji)) {
+        const customAct = {
+            type: 'CUSTOM',
+            name: 'Custom Status',
+            state: custom.text || ' '
+        };
+        if (custom.emoji) {
+            const m = /<(a)?:(\w+):(\d+)>/.exec(custom.emoji);
+            customAct.emoji = m
+                ? { name: m[2], id: m[3], animated: !!m[1] }
+                : { name: custom.emoji, id: null, animated: false };
+        }
+        activities.push(customAct);
+    }
+
     return { status: cfg.status || 'online', activities };
 }
 
@@ -221,6 +279,9 @@ async function applyPresence() {
 }
 
 function stopClient() {
+    try { messageScheduler.stop(); } catch {}
+    try { autoFeatures.unbind(); } catch {}
+
     if (refreshInterval) {
         clearInterval(refreshInterval);
         refreshInterval = null;
@@ -263,6 +324,9 @@ async function connectClient(token) {
         console.log(`[RPC] Logged in as ${currentTag}`);
 
         await applyPresence();
+
+        try { messageScheduler.initialize(); } catch (e) { console.error('[Messages] init:', e.message); }
+        try { autoFeatures.bind(discordClient); } catch (e) { console.error('[Auto] bind:', e.message); }
 
         refreshInterval = setInterval(() => {
             applyPresence().catch(() => {});
@@ -373,7 +437,7 @@ if (!isVercel) {
 // ─────────────────────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
     if (isVercel) {
-        if (req.path === '/') return next();
+        if (req.path === '/' || req.path === '/api/updates') return next();
         return res.status(403).send('Access Denied: This environment only hosts the landing page.');
     }
 
@@ -482,6 +546,139 @@ app.post('/api/disconnect', (req, res) => {
 
     stopClient();
     res.json({ success: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Spoof presets
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/spoof/presets', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    res.json({ games: GAMES, apps: APPS, platforms: PLATFORMS });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Messaging — scheduled (one-time) and recurring (interval)
+// ─────────────────────────────────────────────────────────────────────────────
+function requireConnected(res) {
+    if (!discordClient || clientState !== 'connected') {
+        res.json({ success: false, error: 'Discord client not connected' });
+        return false;
+    }
+    return true;
+}
+
+app.get('/api/messages', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    res.json({ success: true, ...messageScheduler.list() });
+});
+
+app.post('/api/messages/scheduled', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const entry = messageScheduler.addScheduled(req.body || {});
+        res.json({ success: true, entry });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.delete('/api/messages/scheduled/:id', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    messageScheduler.removeScheduled(req.params.id);
+    res.json({ success: true });
+});
+
+app.post('/api/messages/recurring', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const entry = messageScheduler.addRecurring(req.body || {});
+        res.json({ success: true, entry });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.delete('/api/messages/recurring/:id', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    messageScheduler.removeRecurring(req.params.id);
+    res.json({ success: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auto features (AFK / auto-react / auto-reply)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/auto', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    res.json({ success: true, config: autoFeatures.config() });
+});
+
+app.post('/api/auto', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const next = autoFeatures.update(req.body || {});
+        res.json({ success: true, config: next });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Utility — purge / dm / massdm
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/api/util/purge', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const { channelId, count } = req.body || {};
+        if (!channelId) return res.json({ success: false, error: 'channelId required' });
+        const deleted = await purgeOwn(discordClient, channelId, count || 10);
+        res.json({ success: true, deleted });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/util/send', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const { targetId, message } = req.body || {};
+        if (!targetId || !message) return res.json({ success: false, error: 'targetId and message required' });
+        await sendTo(discordClient, targetId, message);
+        res.json({ success: true });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/util/massdm', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const { ids, message, delayMs } = req.body || {};
+        if (!Array.isArray(ids) || ids.length === 0 || !message) {
+            return res.json({ success: false, error: 'ids[] and message required' });
+        }
+        const result = await massDm(discordClient, ids, message, Math.max(1000, parseInt(delayMs, 10) || 1500));
+        res.json({ success: true, ...result });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Updates feed (consumed by landing page)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/updates', (req, res) => {
+    try {
+        const file = path.join(__dirname, 'data', 'updates.json');
+        const raw = fs.readFileSync(file, 'utf8');
+        res.type('application/json').send(raw);
+    } catch (e) {
+        res.json({ updates: [] });
+    }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
