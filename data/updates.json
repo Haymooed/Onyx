@@ -1,0 +1,44 @@
+{
+  "updates": [
+    {
+      "version": "1.2.0",
+      "date": "2026-05-07",
+      "title": "Automation & Mobile Update",
+      "tag": "major",
+      "changes": [
+        "Massive spoofing library — 25+ games (Valorant, Fortnite, Apex, GTA V, CS2, Elden Ring, Marvel Rivals, Palworld, and more) plus Spotify, Netflix, YouTube, Crunchyroll, PlayStation, Xbox & Switch.",
+        "Custom application-ID spoof builder: paste any Discord App ID + name + assets.",
+        "Custom Status (the line under your username) with emoji + text.",
+        "Scheduled messages — fire-once at any future time.",
+        "Recurring (timed) messages — repeat on any interval.",
+        "Auto-reply rules with DM/mention scoping.",
+        "Auto-react triggers on users and keywords.",
+        "AFK auto-responder for DMs with per-user cooldown.",
+        "Utility: purge own messages, single DM, mass DM with throttle.",
+        "Mobile-first panel redesign — works great on phones."
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-04-12",
+      "title": "Discord Quests Automation",
+      "tag": "feature",
+      "changes": [
+        "Built-in Discord Quest auto-completer.",
+        "One-click 'Start All' that runs quests sequentially.",
+        "Live status banner with current quest game shown in your Discord profile."
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-03-01",
+      "title": "Initial Release",
+      "tag": "release",
+      "changes": [
+        "Discord RPC editor with live preview.",
+        "Game and app spoofing (Minecraft, Genshin, Crunchyroll, PS5).",
+        "Password-protected admin panel with token storage."
+      ]
+    }
+  ]
+}
