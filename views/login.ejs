@@ -1,64 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Onyx — Login</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Space Grotesk',sans-serif}
-body{background:#06080f;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;
-  background-image:radial-gradient(ellipse at 20% 50%,rgba(0,180,255,.07) 0%,transparent 50%),
-                   radial-gradient(ellipse at 80% 20%,rgba(0,100,255,.05) 0%,transparent 45%)}
-.card{background:#0b1020;border:1px solid rgba(0,180,255,.15);border-radius:16px;padding:40px;width:100%;max-width:380px;
-  box-shadow:0 0 40px rgba(0,120,255,.08),0 20px 60px rgba(0,0,0,.5);animation:up .45s ease}
-@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.logo{text-align:center;margin-bottom:32px}
-.logo-mark{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;
-  background:linear-gradient(135deg,#0050ff,#00b4ff);border-radius:14px;margin-bottom:14px;
-  box-shadow:0 0 24px rgba(0,150,255,.35)}
-.logo-mark svg{width:26px;height:26px;fill:#fff}
-.logo h1{font-size:1.65rem;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:4px}
-.logo p{color:#4a5a7a;font-size:.82rem}
-label{display:block;color:#5a7090;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
-input{width:100%;padding:11px 14px;background:#0f1829;border:1px solid rgba(0,150,255,.15);border-radius:10px;
-  color:#e0e8ff;font-size:.92rem;outline:none;transition:.2s;font-family:inherit}
-input:focus{border-color:#0090ff;box-shadow:0 0 0 3px rgba(0,144,255,.12)}
-input::placeholder{color:#2a3a55}
-.field{margin-bottom:20px}
-.btn{width:100%;padding:13px;border:none;border-radius:10px;
-  background:linear-gradient(90deg,#0050ff,#00a0ff);color:#fff;font-size:.92rem;font-weight:700;
-  cursor:pointer;transition:.25s;font-family:inherit;letter-spacing:.02em;
-  box-shadow:0 4px 20px rgba(0,100,255,.3)}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,120,255,.45)}
-.btn:active{transform:translateY(0)}
-.err{color:#ff5555;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);
-  border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:18px;display:none}
+:root {
+  --bg: #0f0b12;
+  --surface: #1a1420;
+  --surface2: #241c2c;
+  --border: rgba(255, 105, 180, 0.15);
+  --accent: #ff69b4;
+  --accent2: #ff1493;
+  --accent-glow: rgba(255, 105, 180, 0.3);
+  --text: #f8e8f0;
+  --text-dim: #b09eb0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse at 20% 50%, rgba(255, 105, 180, 0.07) 0%, transparent 50%),
+                   radial-gradient(ellipse at 80% 20%, rgba(255, 20, 147, 0.05) 0%, transparent 45%);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 0 40px rgba(255, 105, 180, 0.08), 0 20px 60px rgba(0,0,0,0.5);
+  animation: up 0.45s ease;
+}
+
+@keyframes up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.logo { text-align: center; margin-bottom: 32px; }
+
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+.logo-mark svg { width: 26px; height: 26px; fill: #fff; }
+
+.logo h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  background: linear-gradient(90deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.logo p { color: var(--text-dim); font-size: .85rem; }
+
+label { display: block; color: var(--text-dim); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+
+input {
+  width: 100%; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text); font-size: .95rem; outline: none; transition: .2s; font-family: inherit;
+}
+
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1); }
+input::placeholder { color: #504050; }
+
+.field { margin-bottom: 24px; }
+
+.btn {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  color: #fff; font-size: .95rem; font-weight: 700;
+  cursor: pointer; transition: .25s; font-family: inherit; letter-spacing: .02em;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255, 105, 180, 0.4); }
+.btn:active { transform: translateY(0); }
+
+.err {
+  color: #ff5555; background: rgba(255, 60, 60, 0.08); border: 1px solid rgba(255, 60, 60, 0.2);
+  border-radius: 10px; padding: 12px; font-size: .85rem; margin-bottom: 20px; display: none; text-align: center;
+}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/></svg>
     </div>
     <h1>Onyx</h1>
     <p>Sign in to manage your presence</p>
   </div>
   <div id="err" class="err"></div>
   <form onsubmit="login(event)">
-    <div class="field"><label>Password</label><input type="password" id="pw" placeholder="Enter password" required autofocus></div>
+    <div class="field">
+      <label>Access Password</label>
+      <input type="password" id="pw" placeholder="Enter password" required autofocus>
+    </div>
     <button class="btn" type="submit">Sign In</button>
   </form>
 </div>
 <script>
-async function login(e){
+async function login(e) {
   e.preventDefault();
-  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('pw').value})});
-  const d=await r.json();
-  if(d.success)location.href='/';
-  else{const el=document.getElementById('err');el.textContent=d.error||'Wrong password';el.style.display='block';}
+  const pw = document.getElementById('pw').value;
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const d = await r.json();
+    if (d.success) {
+      window.location.href = '/panel';
+    } else {
+      const el = document.getElementById('err');
+      el.textContent = d.error || 'Invalid password';
+      el.style.display = 'block';
+    }
+  } catch (err) {
+    const el = document.getElementById('err');
+    el.textContent = 'Connection error';
+    el.style.display = 'block';
+  }
 }
 </script>
 </body>

@@ -585,7 +585,12 @@ app.get('/', (req, res) => {
     if (isVercel) {
         res.sendFile(path.join(__dirname, 'landing.html'));
     } else {
-        res.redirect('/login');
+        const auth = req.cookies.auth;
+        if (auth === getPanelPass()) {
+            res.redirect('/panel');
+        } else {
+            res.redirect('/login');
+        }
     }
 });
 
