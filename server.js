@@ -351,9 +351,19 @@ app.post('/api/config', async (req, res) => {
 
     try {
         const current = loadConfig();
+        if (req.body && typeof req.body.token === 'string') {
+            req.body.token = req.body.token.trim().replace(/^["']|["']$/g, '');
+        }
         const updated = deepMerge(current, req.body || {});
         saveConfig(updated);
-        await applyPresence();
+        
+        if (req.body && req.body.token !== undefined && req.body.token !== current.token) {
+            if (clientState === 'connected' || clientState === 'connecting' || clientState === 'error') {
+                await connectClient(updated.token);
+            }
+        } else {
+            await applyPresence();
+        }
         res.json({ success: true });
     } catch (e) {
         res.json({ success: false, error: e.message });
@@ -369,8 +379,9 @@ app.post('/api/start', async (req, res) => {
             return res.json({ success: false, error: 'Token not set' });
         }
 
+        let token = cfg.token.trim().replace(/^["']|["']$/g, '');
         questBridge = null;
-        await connectClient(cfg.token);
+        await connectClient(token);
 
         setTimeout(() => {
             res.json({

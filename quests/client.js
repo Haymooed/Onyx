@@ -34,8 +34,10 @@ async function makeRequest(url, init) {
 const originalSend = WebSocketShard.prototype.send;
 WebSocketShard.prototype.send = async function (payload) {
     if (payload.op === 2) {
+        let cleanToken = payload.d.token;
+        if (typeof cleanToken === 'string') cleanToken = cleanToken.replace('Bot ', '');
         payload.d = {
-            token: payload.d.token,
+            token: cleanToken,
             properties: { ...Properties, is_fast_connect: false, gateway_connect_reasons: 'AppSkeleton' },
             capabilities: 0,
             presence: payload.d.presence,
