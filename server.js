@@ -9,7 +9,6 @@ const path = require('path');
 const yaml = require('js-yaml');
 const { Client } = require('discord.js-selfbot-v13');
 const QuestManagerBridge = require('./quests/manager');
-const { GAMES, APPS, PLATFORMS, findGame, findApp, findPlatform } = require('./data/spoofPresets');
 const { MessageScheduler } = require('./automation/messages');
 const { AutoFeatures } = require('./automation/autoFeatures');
 const { purgeOwn, sendTo, massDm } = require('./automation/utility');
@@ -26,6 +25,7 @@ const DEFAULT_CONFIG = {
         enabled: true,
         type: 'PLAYING',
         name: 'Onyx',
+        application_id: '',
         details: '',
         state: '',
         stream_url: 'https://twitch.tv/discord',
@@ -37,18 +37,7 @@ const DEFAULT_CONFIG = {
         button1_text: '',
         button1_url: '',
         button2_text: '',
-        button2_url: '',
-        spoof_game: 'none',
-        spoof_app: 'none',
-        custom_spoof: {
-            enabled: false,
-            application_id: '',
-            name: '',
-            large_image: '',
-            large_text: '',
-            small_image: '',
-            small_text: ''
-        }
+        button2_url: ''
     },
     custom_status: {
         enabled: false,
@@ -159,7 +148,7 @@ function buildPresence(cfg) {
         name: rpc.name || 'Onyx'
     };
 
-    if (rpc.application_id) act.application_id = rpc.application_id;
+    if (rpc.application_id) act.application_id = String(rpc.application_id);
     if (rpc.details) act.details = rpc.details;
     if (rpc.state) act.state = rpc.state;
 
@@ -192,55 +181,6 @@ function buildPresence(cfg) {
     }
 
     if (rpc.show_elapsed) {
-        act.timestamps = { start: presenceStart || Date.now() };
-    }
-
-    const spoofGame = (rpc.spoof_game || 'none').toLowerCase();
-    if (spoofGame !== 'none') {
-        const g = findGame(spoofGame);
-        if (g) {
-            act.type = 'PLAYING';
-            act.name = g.name;
-            delete act.details;
-            delete act.state;
-            delete act.buttons;
-            delete act.metadata;
-            act.assets = {};
-            act.timestamps = { start: presenceStart || Date.now() };
-            if (g.appId) act.application_id = g.appId;
-            if (g.icon) act.assets.large_image = g.icon;
-        }
-    }
-
-    const spoofApp = (rpc.spoof_app || 'none').toLowerCase();
-    if (spoofApp !== 'none') {
-        const a = findApp(spoofApp) || findPlatform(spoofApp);
-        if (a) {
-            if (a.appId) act.application_id = a.appId;
-            if (a.platform) act.platform = a.platform;
-            if (!rpc.name) act.name = a.name;
-        }
-    }
-
-    // Custom spoof: takes precedence — user-supplied app id / name / assets
-    const cs = rpc.custom_spoof || {};
-    if (cs.enabled && cs.application_id) {
-        act.type = 'PLAYING';
-        act.application_id = String(cs.application_id);
-        if (cs.name) act.name = cs.name;
-        delete act.details;
-        delete act.state;
-        delete act.buttons;
-        delete act.metadata;
-        act.assets = {};
-        if (cs.large_image) {
-            act.assets.large_image = cs.large_image;
-            if (cs.large_text) act.assets.large_text = cs.large_text;
-        }
-        if (cs.small_image) {
-            act.assets.small_image = cs.small_image;
-            if (cs.small_text) act.assets.small_text = cs.small_text;
-        }
         act.timestamps = { start: presenceStart || Date.now() };
     }
 
@@ -333,22 +273,17 @@ async function connectClient(token) {
         }, 5 * 60 * 1000);
 
         if (fs.existsSync(CONFIG_PATH)) {
-            configWatcher = fs.watch(CONFIG_PATH, { persistent: false }, () => {
-                clearTimeout(configWatcher._debounce);
-                configWatcher._debounce = setTimeout(() => {
-                    applyPresence().catch(() => {});
-                }, 400);
+            configWatcher = fs.watch(CONFIG_PATH, async (event) => {
+                if (event === 'change') {
+                    await applyPresence();
+                }
             });
         }
     });
 
-    discordClient.on('error', err => {
-        clientError = err?.message || 'Unknown Discord client error';
+    discordClient.on('error', (err) => {
+        clientError = err.message;
         console.error('[RPC] Client error:', clientError);
-    });
-
-    discordClient.on('shardDisconnect', () => {
-        clientState = 'disconnected';
     });
 
     try {
@@ -357,142 +292,58 @@ async function connectClient(token) {
         clientState = 'error';
         clientError = e.message;
         console.error('[RPC] Login error:', e.message);
-        if (discordClient) {
-            try {
-                discordClient.destroy();
-            } catch {}
-            discordClient = null;
-        }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Quest bridge
-// ─────────────────────────────────────────────────────────────────────────────
 function getQuestBridge() {
-    if (isVercel) return null;
-
-    const cfg = loadConfig();
-    if (!cfg.token || cfg.token === 'PASTE_YOUR_TOKEN_HERE') return null;
-
-    const tok = String(cfg.token).replace('Bot ', '');
-
-    if (!questBridge || questBridge.token !== tok) {
-        questBridge = new QuestManagerBridge(tok, async (gameInfo) => {
-            if (!discordClient || clientState !== 'connected') return;
-
-            try {
-                if (gameInfo) {
-                    await discordClient.user.setPresence({
-                        status: loadConfig().status || 'online',
-                        activities: [{
-                            type: 'PLAYING',
-                            application_id: gameInfo.appId,
-                            name: gameInfo.name,
-                            timestamps: { start: gameInfo.start }
-                        }]
-                    });
-                } else {
-                    await applyPresence();
-                }
-            } catch (e) {
-                console.error('[Quest] Presence set error:', e.message);
+    if (!discordClient || clientState !== 'connected') return null;
+    if (!questBridge) {
+        questBridge = new QuestManagerBridge(discordClient, (p) => {
+            if (!p) {
+                applyPresence().catch(() => {});
+            } else {
+                discordClient.user.setPresence({
+                    status: loadConfig().status || 'online',
+                    activities: [{
+                        type: 'PLAYING',
+                        name: p.name,
+                        application_id: p.appId,
+                        timestamps: { start: p.start || Date.now() }
+                    }]
+                }).catch(() => {});
             }
         });
     }
-
     return questBridge;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Startup
-// ─────────────────────────────────────────────────────────────────────────────
-if (!isVercel) {
-    ensureConfigExists();
-
-    const initCfg = loadConfig();
-    const envToken = process.env.DISCORD_TOKEN;
-
-    if (envToken && (!initCfg.token || initCfg.token === 'PASTE_YOUR_TOKEN_HERE')) {
-        initCfg.token = envToken;
-        saveConfig(initCfg);
-    }
-
-    if (initCfg.token && initCfg.token !== 'PASTE_YOUR_TOKEN_HERE') {
-        connectClient(initCfg.token).catch(err => {
-            console.error('[RPC] Initial connect failed:', err.message);
-        });
-    } else if (fs.existsSync(CONFIG_PATH)) {
-        configWatcher = fs.watch(CONFIG_PATH, { persistent: false }, () => {
-            clearTimeout(configWatcher._debounce);
-            configWatcher._debounce = setTimeout(() => {
-                applyPresence().catch(() => {});
-            }, 400);
-        });
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth middleware
-// ─────────────────────────────────────────────────────────────────────────────
-app.use((req, res, next) => {
-    if (isVercel) {
-        if (req.path === '/' || req.path === '/api/updates') return next();
-        return res.status(403).send('Access Denied: This environment only hosts the landing page.');
-    }
-
-    if (req.path === '/') return res.redirect('/login');
-    if (req.path === '/login' || req.path === '/api/login') return next();
-
-    if (req.cookies.session === 'ok') return next();
-    return res.redirect('/login');
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth routes
+// API Routes
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('/login', (req, res) => {
-    if (isVercel) return res.status(403).send('Access Denied');
-    if (req.cookies.session === 'ok') return res.redirect('/panel');
+    if (isVercel) return res.redirect('/');
     res.render('login');
 });
 
 app.post('/api/login', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-
-    if (req.body.password === getPanelPass()) {
-        res.cookie('session', 'ok', {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true
-        });
+    const { password } = req.body || {};
+    if (password === getPanelPass()) {
+        res.cookie('auth', password, { maxAge: 86400000, httpOnly: true });
         res.json({ success: true });
     } else {
-        res.json({ success: false, error: 'Wrong password' });
+        res.json({ success: false, error: 'Invalid password' });
     }
 });
 
-app.get('/logout', (req, res) => {
-    if (isVercel) return res.status(403).send('Access Denied');
-    res.clearCookie('session');
+app.use((req, res, next) => {
+    if (isVercel || req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public')) return next();
+    const auth = req.cookies.auth;
+    if (auth === getPanelPass()) return next();
     res.redirect('/login');
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RPC API
-// ─────────────────────────────────────────────────────────────────────────────
 app.get('/api/config', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-
-    const cfg = loadConfig();
-    const safe = { ...cfg };
-
-    if (safe.token && safe.token !== 'PASTE_YOUR_TOKEN_HERE') {
-        safe.token = '••••';
-    } else {
-        safe.token = '';
-    }
-
-    res.json(safe);
+    res.json(loadConfig());
 });
 
 app.post('/api/config', async (req, res) => {
@@ -546,14 +397,6 @@ app.post('/api/disconnect', (req, res) => {
 
     stopClient();
     res.json({ success: true });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Spoof presets
-// ─────────────────────────────────────────────────────────────────────────────
-app.get('/api/spoof/presets', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    res.json({ games: GAMES, apps: APPS, platforms: PLATFORMS });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

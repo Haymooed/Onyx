@@ -162,9 +162,6 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
   .quest-toolbar{gap:6px}
   .save-bar{flex-direction:column;gap:8px;align-items:stretch;padding:10px 14px}
   .save-bar .btn{width:100%;justify-content:center}
-  .save-bar .hint{text-align:center;font-size:.7rem}
-  .quest-item{padding:10px}
-  .quest-item .btn{width:100%;justify-content:center;margin-top:4px}
 }
 </style>
 </head>
@@ -173,31 +170,33 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
 <div class="topbar">
   <div class="brand">
     <div class="brand-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
     </div>
-    <h1>Onyx</h1>
+    <h1>Onyx Panel</h1>
   </div>
   <div class="topbar-right">
-    <a href="/logout"><i class="fas fa-right-from-bracket"></i> Logout</a>
+    <a href="https://github.com/Haymooed/Onyx" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+    <a href="/api/updates" target="_blank"><i class="fas fa-rss"></i> Updates</a>
   </div>
 </div>
 
 <div class="wrap">
-
   <!-- Connection -->
   <div class="card">
-    <div class="card-title"><i class="fas fa-plug"></i> Discord Connection</div>
+    <div class="card-title"><i class="fas fa-link"></i> Connection</div>
     <div class="conn-row">
-      <span class="dot dot-gray" id="connDot"></span>
-      <span class="conn-tag" id="connTag">Not connected</span>
-      <span class="conn-sub" id="connSub"></span>
+      <div id="connDot" class="dot dot-gray"></div>
+      <div style="flex:1">
+        <div id="connTag" class="conn-tag">Not connected</div>
+        <div id="connSub" class="conn-sub">disconnected</div>
+      </div>
+      <button id="disconnectBtn" class="btn btn-danger btn-sm" style="display:none" onclick="disconnectAcc()"><i class="fas fa-power-off"></i> Disconnect</button>
     </div>
-    <div class="token-row field">
-      <input type="password" id="tokenInput" placeholder="Paste your Discord token…">
-      <button class="btn btn-primary" id="connectBtn" onclick="connectAcc()"><i class="fas fa-bolt"></i> Connect</button>
-      <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectAcc()" style="display:none"><i class="fas fa-xmark"></i> Disconnect</button>
+    <div class="token-row">
+      <input type="password" id="tokenInput" placeholder="Enter your Discord token">
+      <button id="connectBtn" class="btn btn-primary" onclick="connectAcc()"><i class="fas fa-bolt"></i> Connect</button>
     </div>
-    <p class="note"><i class="fas fa-lock"></i> Token is stored only in config.yml on your machine</p>
+    <div class="note"><i class="fas fa-info-circle"></i> Your token is saved locally in config.yml</div>
   </div>
 
   <!-- Presence Settings -->
@@ -258,48 +257,22 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
       <div>
         <div class="prev-type" id="prevType">PLAYING</div>
         <div class="prev-name" id="prevName">Onyx</div>
-        <div class="prev-details" id="prevDetails" style="display:none"></div>
-        <div class="prev-state" id="prevState" style="display:none"></div>
+        <div class="prev-details" id="prevDetails">Doing something cool</div>
+        <div class="prev-state" id="prevState">with Onyx</div>
       </div>
     </div>
   </div>
 
   <!-- Buttons -->
   <div class="card">
-    <div class="card-title"><i class="fas fa-link"></i> Buttons</div>
+    <div class="card-title"><i class="fas fa-mouse-pointer"></i> Buttons <span style="color:var(--text-muted);text-transform:none;margin-left:5px;font-weight:400">(Self-only)</span></div>
     <div class="grid2">
       <div class="field"><label>Button 1 Text</label><input type="text" id="rpc_button1_text" placeholder="Visit Website"></div>
       <div class="field"><label>Button 1 URL</label><input type="url" id="rpc_button1_url" placeholder="https://…"></div>
-      <div class="field"><label>Button 2 Text</label><input type="text" id="rpc_button2_text" placeholder="Join Server"></div>
-      <div class="field"><label>Button 2 URL</label><input type="url" id="rpc_button2_url" placeholder="https://…"></div>
+      <div class="field" style="margin-top:8px"><label>Button 2 Text</label><input type="text" id="rpc_button2_text" placeholder="Join Discord"></div>
+      <div class="field" style="margin-top:8px"><label>Button 2 URL</label><input type="url" id="rpc_button2_url" placeholder="https://…"></div>
     </div>
-  </div>
-
-  <!-- Spoofing -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-mask"></i> Spoofing</div>
-    <div class="grid2">
-      <div class="field"><label>Game Spoof <span style="color:var(--text-muted)">(overrides fields above)</span></label>
-        <select id="rpc_spoof_game"><option value="none">None</option></select>
-      </div>
-      <div class="field"><label>App / Platform Spoof</label>
-        <select id="rpc_spoof_app"><option value="none">None</option></select>
-      </div>
-    </div>
-
-    <hr class="sep">
-    <div class="toggle-row">
-      <div class="tl-label">Custom Spoof Builder<small>Use any Discord application_id with your own name + assets</small></div>
-      <label class="switch"><input type="checkbox" id="cs_enabled"><span class="slider"></span></label>
-    </div>
-    <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>Application ID</label><input type="text" id="cs_app_id" placeholder="Discord App ID"></div>
-      <div class="field"><label>Display Name</label><input type="text" id="cs_name" placeholder="My Game"></div>
-      <div class="field"><label>Large Image URL</label><input type="url" id="cs_large_image" placeholder="https://…"></div>
-      <div class="field"><label>Large Image Hover</label><input type="text" id="cs_large_text" placeholder="Hover text"></div>
-      <div class="field"><label>Small Image URL</label><input type="url" id="cs_small_image" placeholder="https://…"></div>
-      <div class="field"><label>Small Image Hover</label><input type="text" id="cs_small_text" placeholder="Hover text"></div>
-    </div>
+    <div class="note"><i class="fas fa-exclamation-triangle"></i> Discord only shows buttons to you, not others (Selfbot limitation).</div>
   </div>
 
   <!-- Custom Status -->
@@ -331,150 +304,114 @@ input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--acc
         <div class="field"><label>Send at</label><input type="datetime-local" id="sch_when"></div>
       </div>
       <div class="field" style="margin-top:8px"><label>Message</label><textarea id="sch_msg" placeholder="Hello!"></textarea></div>
-      <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addScheduled()"><i class="fas fa-clock"></i> Schedule</button>
-      <div class="row-list" id="sch_list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addScheduled()"><i class="fas fa-plus"></i> Schedule Message</button>
+      <div id="sch_list" class="row-list"></div>
     </div>
 
     <hr class="sep">
 
-    <!-- Recurring -->
+    <!-- Recurring (interval) -->
     <div>
-      <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Recurring (timed)</label>
+      <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Recurring (Interval)</label>
       <div class="grid2">
         <div class="field"><label>Target ID</label><input type="text" id="rec_target" placeholder="Channel or User ID"></div>
-        <div class="field"><label>Every</label>
-          <div style="display:flex;gap:8px">
-            <input type="number" id="rec_interval" min="1" placeholder="5" style="flex:1">
-            <select id="rec_unit" style="flex:1">
-              <option value="second">seconds</option>
-              <option value="minute" selected>minutes</option>
-              <option value="hour">hours</option>
-              <option value="day">days</option>
-            </select>
-          </div>
-        </div>
+        <div class="field"><label>Interval (minutes)</label><input type="number" id="rec_interval" placeholder="60" min="1"></div>
       </div>
-      <div class="field" style="margin-top:8px"><label>Message</label><textarea id="rec_msg" placeholder="Repeat me…"></textarea></div>
-      <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addRecurring()"><i class="fas fa-repeat"></i> Start Loop</button>
-      <div class="row-list" id="rec_list"></div>
+      <div class="field" style="margin-top:8px"><label>Message</label><textarea id="rec_msg" placeholder="Bump!"></textarea></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addRecurring()"><i class="fas fa-repeat"></i> Add Recurring</button>
+      <div id="rec_list" class="row-list"></div>
     </div>
   </div>
 
   <!-- Auto Features -->
   <div class="card">
-    <div class="card-title"><i class="fas fa-robot"></i> Auto-Reply & Auto-React</div>
-
+    <div class="card-title"><i class="fas fa-robot"></i> Automation</div>
+    
+    <!-- AFK -->
     <div class="toggle-row">
-      <div class="tl-label">AFK auto-responder<small>Replies once per user (cooldown) when DMed</small></div>
-      <label class="switch"><input type="checkbox" id="afk_enabled" onchange="saveAuto()"><span class="slider"></span></label>
+      <div class="tl-label">AFK Auto-Responder<small>Replies to DMs when you're away</small></div>
+      <label class="switch"><input type="checkbox" id="afk_enabled"><span class="slider"></span></label>
     </div>
-    <div class="field" style="margin-top:8px"><label>AFK Message</label><textarea id="afk_message" onblur="saveAuto()" placeholder="I'm AFK — I'll get back to you soon."></textarea></div>
+    <div class="field" style="margin-top:10px"><label>AFK Message</label><input type="text" id="afk_msg" placeholder="I'm AFK right now."></div>
 
     <hr class="sep">
 
+    <!-- Auto React -->
     <div class="toggle-row">
-      <div class="tl-label">Auto-Reply rules<small>Triggers in DMs or when you're @mentioned</small></div>
-      <label class="switch"><input type="checkbox" id="ar_enabled" onchange="saveAuto()"><span class="slider"></span></label>
+      <div class="tl-label">Auto-React<small>React to messages from specific users or keywords</small></div>
+      <label class="switch"><input type="checkbox" id="react_enabled"><span class="slider"></span></label>
     </div>
-    <div class="grid2" style="margin-top:8px">
-      <div class="field"><label>Match (substring)</label><input type="text" id="ar_match" placeholder="hello"></div>
-      <div class="field"><label>Reply</label><input type="text" id="ar_reply" placeholder="hi back!"></div>
-    </div>
-    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addAutoReply()"><i class="fas fa-plus"></i> Add Rule</button>
-    <div class="row-list" id="ar_list"></div>
+    <div class="note" style="margin-bottom:10px">Configure triggers in <code>data/auto.json</code> for now. UI coming soon.</div>
 
     <hr class="sep">
 
+    <!-- Auto Reply -->
     <div class="toggle-row">
-      <div class="tl-label">Auto-React<small>React with emoji to messages from a user or matching a keyword</small></div>
-      <label class="switch"><input type="checkbox" id="rx_enabled" onchange="saveAuto()"><span class="slider"></span></label>
+      <div class="tl-label">Auto-Reply Rules<small>Reply to specific phrases in DMs or mentions</small></div>
+      <label class="switch"><input type="checkbox" id="reply_enabled"><span class="slider"></span></label>
     </div>
-    <div class="grid2" style="margin-top:8px">
-      <div class="field"><label>Trigger Type</label>
-        <select id="rx_type"><option value="user">User ID</option><option value="text">Keyword</option></select>
-      </div>
-      <div class="field"><label>Trigger</label><input type="text" id="rx_trigger" placeholder="user id or keyword"></div>
-      <div class="field"><label>Emoji(s) — comma separated</label><input type="text" id="rx_emojis" placeholder="🔥,💀"></div>
+    <div class="note">Configure rules in <code>data/auto.json</code>.</div>
+  </div>
+
+  <!-- Quests -->
+  <div class="card">
+    <div class="card-title"><i class="fas fa-trophy"></i> Discord Quests</div>
+    <div class="quest-running-banner" id="questBanner">
+      <div class="spinner"></div>
+      <div id="questBannerText" style="font-size:.78rem;font-weight:600">Running quests…</div>
     </div>
-    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addAutoReact()"><i class="fas fa-plus"></i> Add Trigger</button>
-    <div class="row-list" id="rx_list"></div>
+    <div class="quest-toolbar">
+      <button class="btn btn-primary btn-sm" id="startAllBtn" onclick="startAllQuests()"><i class="fas fa-play"></i> Start All Quests</button>
+      <button class="btn btn-danger btn-sm" id="stopBtn" style="display:none" onclick="stopQuests()"><i class="fas fa-stop"></i> Stop All</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadQuests()"><i class="fas fa-sync"></i> Refresh</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearQuestLogs()"><i class="fas fa-trash"></i> Clear Logs</button>
+    </div>
+    <div id="questList" class="quest-list">
+      <div class="quest-empty">Connect your account to see available quests</div>
+    </div>
+    <div class="quest-log" id="questLog">
+      <span style="color:var(--text-muted)">Quest logs will appear here…</span>
+    </div>
   </div>
 
   <!-- Utility -->
   <div class="card">
-    <div class="card-title"><i class="fas fa-screwdriver-wrench"></i> Utility</div>
-
-    <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Purge own messages</label>
+    <div class="card-title"><i class="fas fa-tools"></i> Quick Tools</div>
     <div class="grid2">
-      <div class="field"><label>Channel ID</label><input type="text" id="purge_channel" placeholder="Channel ID"></div>
-      <div class="field"><label>Count (1-100)</label><input type="number" id="purge_count" min="1" max="100" value="10"></div>
+      <div class="field">
+        <label>Purge Messages</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="purge_channel" placeholder="Channel ID" style="flex:1">
+          <input type="number" id="purge_count" value="10" style="width:60px">
+          <button class="btn btn-danger btn-sm" onclick="runPurge()">Purge</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Send Direct Message</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="send_target" placeholder="User ID" style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="runSend()">Send</button>
+        </div>
+        <input type="text" id="send_msg" placeholder="Message content..." style="margin-top:6px">
+      </div>
     </div>
-    <button class="btn btn-danger btn-sm" style="margin-top:8px" onclick="doPurge()"><i class="fas fa-trash"></i> Purge</button>
-
-    <hr class="sep">
-
-    <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Send a message</label>
-    <div class="grid2">
-      <div class="field"><label>Target ID</label><input type="text" id="send_target" placeholder="Channel or User ID"></div>
-      <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary btn-sm" onclick="doSend()" style="width:100%;justify-content:center"><i class="fas fa-paper-plane"></i> Send</button></div>
-    </div>
-    <div class="field" style="margin-top:8px"><label>Message</label><textarea id="send_msg" placeholder="Hello"></textarea></div>
-
-    <hr class="sep">
-
-    <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Mass DM</label>
-    <div class="field"><label>User IDs (comma or newline separated)</label><textarea id="mass_ids" placeholder="123,456,789"></textarea></div>
-    <div class="grid2" style="margin-top:8px">
-      <div class="field"><label>Delay between (ms)</label><input type="number" id="mass_delay" min="1000" value="1500"></div>
-      <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-danger btn-sm" onclick="doMassDm()" style="width:100%;justify-content:center"><i class="fas fa-bullhorn"></i> Send to All</button></div>
-    </div>
-    <div class="field" style="margin-top:8px"><label>Message</label><textarea id="mass_msg" placeholder="Hello everyone"></textarea></div>
   </div>
-
-  <!-- ── QUESTS ── -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-scroll"></i> Discord Quests
-      <span style="margin-left:auto;font-size:.6rem;color:var(--text-muted);text-transform:none;letter-spacing:0;font-weight:400">
-        Completes one quest at a time • Shows game in your Discord status
-      </span>
-    </div>
-
-    <!-- Running banner -->
-    <div class="quest-running-banner" id="questBanner">
-      <span class="spinner"></span>
-      <span id="questBannerText">Running quest…</span>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="quest-toolbar">
-      <button class="btn btn-ghost btn-sm" onclick="loadQuests()"><i class="fas fa-rotate"></i> Refresh</button>
-      <button class="btn btn-primary btn-sm" id="startAllBtn" onclick="startAllQuests()"><i class="fas fa-play"></i> Start All</button>
-      <button class="btn btn-danger btn-sm" id="stopBtn" onclick="stopQuests()" style="display:none"><i class="fas fa-stop"></i> Stop</button>
-      <button class="btn btn-ghost btn-sm" onclick="clearQuestLogs()" style="margin-left:auto"><i class="fas fa-trash"></i> Clear Logs</button>
-    </div>
-
-    <!-- Quest list -->
-    <div class="quest-list" id="questList">
-      <div class="quest-empty"><i class="fas fa-circle-info" style="margin-right:6px"></i>Click Refresh to load your available quests</div>
-    </div>
-
-    <!-- Log output -->
-    <div class="quest-log" id="questLog"><span style="color:var(--text-muted)">Logs will appear here…</span></div>
-  </div>
-
 </div>
 
 <div class="save-bar">
-  <span class="hint" id="saveHint">Make changes then save</span>
-  <button class="btn btn-primary" id="saveBtn" onclick="saveAll()"><i class="fas fa-floppy-disk"></i> Save &amp; Apply</button>
+  <div class="hint" id="saveHint">You have unsaved changes</div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-ghost" onclick="loadForm()">Discard</button>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveAll()"><i class="fas fa-floppy-disk"></i> Save & Apply</button>
+  </div>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const gv=id=>($( id)||{}).value||'';
-const gc=id=>!!($( id)||{}).checked;
-const sv=(id,v)=>{const e=$(id);if(e)e.value=v};
-const sc=(id,v)=>{const e=$(id);if(e)e.checked=!!v};
+const gv=id=>$(id).value;
+const sv=(id,v)=>$(id).value=v;
+const gc=id=>$(id).checked;
+const sc=(id,v)=>$(id).checked=v;
 
 // ── RPC Form ──────────────────────────────────────────────────────────────────
 async function loadForm(){
@@ -498,34 +435,13 @@ async function loadForm(){
   sv('rpc_button1_url',r.button1_url||'');
   sv('rpc_button2_text',r.button2_text||'');
   sv('rpc_button2_url',r.button2_url||'');
-  await loadSpoofPresets();
-  sv('rpc_spoof_game',r.spoof_game||'none');
-  sv('rpc_spoof_app',r.spoof_app||'none');
-  const cs = r.custom_spoof || {};
-  sc('cs_enabled',!!cs.enabled);
-  sv('cs_app_id',cs.application_id||'');
-  sv('cs_name',cs.name||'');
-  sv('cs_large_image',cs.large_image||'');
-  sv('cs_large_text',cs.large_text||'');
-  sv('cs_small_image',cs.small_image||'');
-  sv('cs_small_text',cs.small_text||'');
+  
   const cst = cfg.custom_status || {};
   sc('custom_status_enabled',!!cst.enabled);
   sv('custom_status_text',cst.text||'');
   sv('custom_status_emoji',cst.emoji||'');
   toggleStreamUrl(); livePreview(); pollStatus();
   loadAuto(); loadMessages();
-}
-
-async function loadSpoofPresets(){
-  try {
-    const d = await fetch('/api/spoof/presets').then(r=>r.json());
-    const g = $('rpc_spoof_game'); const a = $('rpc_spoof_app');
-    g.innerHTML='<option value="none">None</option>'+(d.games||[]).map(x=>`<option value="${x.id}">${escHtml(x.name)}</option>`).join('');
-    const apps = (d.apps||[]).map(x=>`<option value="${x.id}">${escHtml(x.name)}</option>`).join('');
-    const plats = (d.platforms||[]).map(x=>`<option value="${x.id}">${escHtml(x.name)}</option>`).join('');
-    a.innerHTML='<option value="none">None</option>'+apps+plats;
-  } catch(e) {}
 }
 
 async function saveAll(){
@@ -540,17 +456,7 @@ async function saveAll(){
       large_image:gv('rpc_large_image'),large_text:gv('rpc_large_text'),
       small_image:gv('rpc_small_image'),small_text:gv('rpc_small_text'),
       button1_text:gv('rpc_button1_text'),button1_url:gv('rpc_button1_url'),
-      button2_text:gv('rpc_button2_text'),button2_url:gv('rpc_button2_url'),
-      spoof_game:gv('rpc_spoof_game'),spoof_app:gv('rpc_spoof_app'),
-      custom_spoof:{
-        enabled:gc('cs_enabled'),
-        application_id:gv('cs_app_id'),
-        name:gv('cs_name'),
-        large_image:gv('cs_large_image'),
-        large_text:gv('cs_large_text'),
-        small_image:gv('cs_small_image'),
-        small_text:gv('cs_small_text')
-      }
+      button2_text:gv('rpc_button2_text'),button2_url:gv('rpc_button2_url')
     },
     custom_status:{
       enabled:gc('custom_status_enabled'),
@@ -717,7 +623,7 @@ async function pollQuestStatus(){
       if(lastLogCount===0) logEl.innerHTML='';
       newLines.forEach(line=>{
         const div=document.createElement('div');
-        div.className='log-line'+(line.includes('COMPLETED')?' log-done':line.includes('Error')||line.includes('error')?' log-err':line.includes('Starting')||line.includes('Quest')?' log-info':'');
+        div.className='log-line'+(line.includes('COMPLETED')?' log-done':line.includes('Error')||line.includes('error')?' log-info':'');
         div.textContent=line;
         logEl.appendChild(div);
       });
@@ -753,7 +659,8 @@ function renderScheduled(list){
         <div class="ri-sub">${escHtml(e.message)}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deleteScheduled('${e.id}')"><i class="fas fa-xmark"></i></button>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
 function renderRecurring(list){
@@ -762,157 +669,79 @@ function renderRecurring(list){
   el.innerHTML=list.map(e=>`
     <div class="row-item">
       <div class="ri-main">
-        <div><span class="tag">to ${escHtml(e.targetId)}</span> <strong>every ${e.interval} ${escHtml(e.unit)}</strong></div>
+        <div><span class="tag">to ${escHtml(e.targetId)}</span> every <strong>${e.intervalMin}m</strong></div>
         <div class="ri-sub">${escHtml(e.message)}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deleteRecurring('${e.id}')"><i class="fas fa-xmark"></i></button>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
 async function addScheduled(){
-  const targetId=gv('sch_target'),message=gv('sch_msg'),when=gv('sch_when');
-  if(!targetId||!message||!when){toast('Fill all fields',false);return;}
-  const runAt = new Date(when).getTime();
-  const d=await fetch('/api/messages/scheduled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,message,runAt})}).then(r=>r.json());
-  if(d.success){toast('Scheduled!',true);sv('sch_msg','');loadMessages();}
-  else toast(d.error||'Failed',false);
-}
-
-async function deleteScheduled(id){
-  await fetch('/api/messages/scheduled/'+id,{method:'DELETE'});
-  loadMessages();
+  const targetId=gv('sch_target'),runAt=gv('sch_when'),message=gv('sch_msg');
+  if(!targetId||!runAt||!message) return toast('Fill all fields',false);
+  const d=await fetch('/api/messages/scheduled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,runAt,message})}).then(r=>r.json());
+  if(d.success){ toast('Scheduled!',true); loadMessages(); sv('sch_msg',''); }
+  else toast(d.error,false);
 }
 
 async function addRecurring(){
-  const targetId=gv('rec_target'),message=gv('rec_msg'),interval=gv('rec_interval'),unit=gv('rec_unit');
-  if(!targetId||!message||!interval){toast('Fill all fields',false);return;}
-  const d=await fetch('/api/messages/recurring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,message,interval:Number(interval),unit})}).then(r=>r.json());
-  if(d.success){toast('Loop started!',true);sv('rec_msg','');loadMessages();}
-  else toast(d.error||'Failed',false);
+  const targetId=gv('rec_target'),intervalMin=parseInt(gv('rec_interval')),message=gv('rec_msg');
+  if(!targetId||!intervalMin||!message) return toast('Fill all fields',false);
+  const d=await fetch('/api/messages/recurring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,intervalMin,message})}).then(r=>r.json());
+  if(d.success){ toast('Added recurring!',true); loadMessages(); sv('rec_msg',''); }
+  else toast(d.error,false);
 }
 
-async function deleteRecurring(id){
-  await fetch('/api/messages/recurring/'+id,{method:'DELETE'});
-  loadMessages();
-}
+async function deleteScheduled(id){ await fetch('/api/messages/scheduled/'+id,{method:'DELETE'}); loadMessages(); }
+async function deleteRecurring(id){ await fetch('/api/messages/recurring/'+id,{method:'DELETE'}); loadMessages(); }
 
-// ── Auto features ────────────────────────────────────────────────────────────
-let autoCfg = null;
-
+// ── Automation ───────────────────────────────────────────────────────────────
 async function loadAuto(){
-  try {
-    const d = await fetch('/api/auto').then(r=>r.json());
-    autoCfg = d.config;
-    sc('afk_enabled', autoCfg.afk?.enabled);
-    sv('afk_message', autoCfg.afk?.message||'');
-    sc('ar_enabled', autoCfg.autoReply?.enabled);
-    sc('rx_enabled', autoCfg.autoReact?.enabled);
-    renderAutoReply();
-    renderAutoReact();
-  } catch(e){}
+  const d=await fetch('/api/auto').then(r=>r.json());
+  if(!d.success) return;
+  const c=d.config;
+  sc('afk_enabled',!!c.afk?.enabled);
+  sv('afk_msg',c.afk?.message||'');
+  sc('react_enabled',!!c.autoReact?.enabled);
+  sc('reply_enabled',!!c.autoReply?.enabled);
 }
 
 async function saveAuto(){
-  if(!autoCfg) autoCfg = { afk:{}, autoReply:{}, autoReact:{} };
-  autoCfg.afk = { ...(autoCfg.afk||{}), enabled: gc('afk_enabled'), message: gv('afk_message') };
-  autoCfg.autoReply = { ...(autoCfg.autoReply||{}), enabled: gc('ar_enabled'), rules: autoCfg.autoReply?.rules||[] };
-  autoCfg.autoReact = { ...(autoCfg.autoReact||{}), enabled: gc('rx_enabled'),
-    userTriggers: autoCfg.autoReact?.userTriggers||{}, textTriggers: autoCfg.autoReact?.textTriggers||{} };
-  const d = await fetch('/api/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(autoCfg)}).then(r=>r.json());
-  if(d.success){ autoCfg = d.config; }
+  const body={
+    afk:{ enabled:gc('afk_enabled'), message:gv('afk_msg') },
+    autoReact:{ enabled:gc('react_enabled') },
+    autoReply:{ enabled:gc('reply_enabled') }
+  };
+  await fetch('/api/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 }
 
-function renderAutoReply(){
-  const el=$('ar_list'), rules = autoCfg?.autoReply?.rules || [];
-  if(!rules.length){el.innerHTML='<div class="empty">No reply rules</div>';return;}
-  el.innerHTML = rules.map((r,i)=>`
-    <div class="row-item">
-      <div class="ri-main"><strong>${escHtml(r.match)}</strong> → ${escHtml(r.reply)}</div>
-      <button class="btn btn-danger btn-sm" onclick="removeAutoReply(${i})"><i class="fas fa-xmark"></i></button>
-    </div>`).join('');
-}
-
-async function addAutoReply(){
-  const match=gv('ar_match'),reply=gv('ar_reply');
-  if(!match||!reply){toast('Match + reply required',false);return;}
-  if(!autoCfg) await loadAuto();
-  autoCfg.autoReply.rules = [...(autoCfg.autoReply.rules||[]), {match, reply, exact:false}];
-  await saveAuto();
-  sv('ar_match','');sv('ar_reply','');
-  renderAutoReply();
-}
-
-async function removeAutoReply(i){
-  if(!autoCfg) return;
-  autoCfg.autoReply.rules = (autoCfg.autoReply.rules||[]).filter((_,x)=>x!==i);
-  await saveAuto();
-  renderAutoReply();
-}
-
-function renderAutoReact(){
-  const el=$('rx_list');
-  const u = autoCfg?.autoReact?.userTriggers || {};
-  const t = autoCfg?.autoReact?.textTriggers || {};
-  const items = [
-    ...Object.entries(u).map(([id,emojis])=>({type:'user',key:id,emojis})),
-    ...Object.entries(t).map(([kw,emojis])=>({type:'text',key:kw,emojis}))
-  ];
-  if(!items.length){el.innerHTML='<div class="empty">No react triggers</div>';return;}
-  el.innerHTML = items.map(i=>`
-    <div class="row-item">
-      <div class="ri-main"><span class="tag">${i.type}</span> <strong>${escHtml(i.key)}</strong> → ${(i.emojis||[]).map(escHtml).join(' ')}</div>
-      <button class="btn btn-danger btn-sm" onclick="removeAutoReact('${i.type}','${escAttr(i.key)}')"><i class="fas fa-xmark"></i></button>
-    </div>`).join('');
-}
-
-async function addAutoReact(){
-  const type=gv('rx_type'),key=gv('rx_trigger'),emojis=gv('rx_emojis').split(',').map(s=>s.trim()).filter(Boolean);
-  if(!key||!emojis.length){toast('Trigger + emoji(s) required',false);return;}
-  if(!autoCfg) await loadAuto();
-  if(type==='user') autoCfg.autoReact.userTriggers = { ...(autoCfg.autoReact.userTriggers||{}), [key]: emojis };
-  else autoCfg.autoReact.textTriggers = { ...(autoCfg.autoReact.textTriggers||{}), [key]: emojis };
-  await saveAuto();
-  sv('rx_trigger','');sv('rx_emojis','');
-  renderAutoReact();
-}
-
-async function removeAutoReact(type,key){
-  if(!autoCfg) return;
-  if(type==='user'){const c={...(autoCfg.autoReact.userTriggers||{})};delete c[key];autoCfg.autoReact.userTriggers=c;}
-  else{const c={...(autoCfg.autoReact.textTriggers||{})};delete c[key];autoCfg.autoReact.textTriggers=c;}
-  await saveAuto();
-  renderAutoReact();
-}
-
-// ── Utility actions ──────────────────────────────────────────────────────────
-async function doPurge(){
-  const channelId=gv('purge_channel'),count=Number(gv('purge_count'))||10;
-  if(!channelId){toast('Channel ID required',false);return;}
+// ── Utility ──────────────────────────────────────────────────────────────────
+async function runPurge(){
+  const channelId=gv('purge_channel'),count=parseInt(gv('purge_count'));
+  if(!channelId) return toast('Channel ID required',false);
   const d=await fetch('/api/util/purge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channelId,count})}).then(r=>r.json());
-  if(d.success) toast(`Deleted ${d.deleted}`,true); else toast(d.error||'Failed',false);
+  if(d.success) toast(`Purged ${d.deleted} messages`,true);
+  else toast(d.error,false);
 }
 
-async function doSend(){
+async function runSend(){
   const targetId=gv('send_target'),message=gv('send_msg');
-  if(!targetId||!message){toast('Target + message required',false);return;}
+  if(!targetId||!message) return toast('Target and message required',false);
   const d=await fetch('/api/util/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,message})}).then(r=>r.json());
-  if(d.success){toast('Sent',true);sv('send_msg','');} else toast(d.error||'Failed',false);
+  if(d.success) toast('Sent!',true);
+  else toast(d.error,false);
 }
 
-async function doMassDm(){
-  const ids = gv('mass_ids').split(/[\n,]/).map(s=>s.trim()).filter(Boolean);
-  const message=gv('mass_msg'), delayMs=Number(gv('mass_delay'))||1500;
-  if(!ids.length||!message){toast('IDs + message required',false);return;}
-  toast(`Sending to ${ids.length}…`,true);
-  const d=await fetch('/api/util/massdm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,message,delayMs})}).then(r=>r.json());
-  if(d.success) toast(`Sent ${d.sent}, failed ${d.failed}`,true); else toast(d.error||'Failed',false);
-}
-
-function escAttr(s){return String(s).replace(/'/g,"\\'");}
-
-loadForm();
-// Check if quests are already running on page load
-pollQuestStatus();
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.onload=()=>{
+  loadForm();
+  // Auto-save automation toggles
+  ['afk_enabled','react_enabled','reply_enabled'].forEach(id=>{
+    $(id).onchange=saveAuto;
+  });
+  $('afk_msg').onblur=saveAuto;
+};
 </script>
 </body>
 </html>
