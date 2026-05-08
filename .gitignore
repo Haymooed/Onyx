@@ -4,6 +4,7 @@ uv.lock
 hello.py
 
 .env
+.env.txt
 node_modules/
 config.yml
 start.js.old

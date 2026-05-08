@@ -296,24 +296,10 @@ async function connectClient(token) {
 }
 
 function getQuestBridge() {
-    if (!discordClient || clientState !== 'connected') return null;
-    if (!questBridge) {
-        questBridge = new QuestManagerBridge(discordClient, (p) => {
-            if (!p) {
-                applyPresence().catch(() => {});
-            } else {
-                discordClient.user.setPresence({
-                    status: loadConfig().status || 'online',
-                    activities: [{
-                        type: 'PLAYING',
-                        name: p.name,
-                        application_id: p.appId,
-                        timestamps: { start: p.start || Date.now() }
-                    }]
-                }).catch(() => {});
-            }
-        });
-    }
+    if (clientState !== 'connected') return null;
+    const cfg = loadConfig();
+    const token = (cfg.token || '').trim().replace(/^["']|["']$/g, '');
+    questBridge = new QuestManagerBridge(token);
     return questBridge;
 }
 
@@ -619,8 +605,16 @@ app.get('/panel', (req, res) => {
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3000;
 
 if (!isVercel) {
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
         console.log(`[Onyx] Panel running on port ${PORT}  password: ${getPanelPass()}`);
+
+        // Auto-connect if a valid token is configured
+        const cfg = loadConfig();
+        const token = (cfg.token || '').trim().replace(/^["']|["']$/g, '');
+        if (token && token !== 'PASTE_YOUR_TOKEN_HERE') {
+            console.log('[Onyx] Token found — auto-connecting...');
+            await connectClient(token);
+        }
     });
 }
 

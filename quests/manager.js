@@ -1,11 +1,13 @@
 const { ClientQuest } = require('./client');
 
 class QuestManagerBridge {
-    constructor(token, onPresenceChange) {
+    constructor(token) {
         this.token = token.replace('Bot ', '');
-        this.onPresenceChange = onPresenceChange || null;
         this.client = new ClientQuest(this.token);
-        this.client.connect().catch(err => this.log(`Gateway Error: ${err.message}`));
+
+        this.client.connect().catch(err => {
+            this.log('system', `Gateway Error: ${err.message}`);
+        });
 
         this.globalLogs = [];
         this.activeManager = null;
@@ -13,9 +15,22 @@ class QuestManagerBridge {
         this.currentQuestInfo = null;
     }
 
-    log(msg) {
+    get activeQuests() { return new Map(); }
+
+    log(questId, msg) {
+        let line = '';
         const time = new Date().toLocaleTimeString();
-        const line = (typeof msg === 'string' && msg.startsWith('[')) ? msg : `[${time}] ${msg}`;
+
+        if (msg) {
+            line = msg;
+        } else {
+            line = questId;
+        }
+
+        if (!line.startsWith('[')) {
+            line = `[${time}] ${line}`;
+        }
+
         this.globalLogs.push(line);
         if (this.globalLogs.length > 500) this.globalLogs.shift();
         console.log('[Quest]', line);
@@ -23,7 +38,7 @@ class QuestManagerBridge {
 
     clearLogs() {
         this.globalLogs = [];
-        this.log('Logs cleared.');
+        this.log('system', 'Logs cleared.');
     }
 
     // Fetch available quests — returns array of { id, name, game, appId, type, completed, expired }
@@ -45,39 +60,64 @@ class QuestManagerBridge {
         }));
     }
 
-    // Start all valid quests ONE AT A TIME (sequential)
     async startAll() {
-        if (this.isRunning) { this.log('Already running.'); return; }
+        if (this.isRunning) {
+            this.log('system', 'Already running.');
+            return;
+        }
+
         this.isRunning = true;
-        this.log('Starting Quest Protocol...');
+        this.log('system', 'Starting Quest Protocol...');
+
         try {
             const manager = await this.client.fetchQuests();
             this.activeManager = manager;
-            manager.setLogger((msg) => this.log(msg));
-            const validQuests = manager.filterQuestsValid();
-            this.log(`Found ${validQuests.length} valid quest(s).`);
-            if (validQuests.length === 0) { this.log('No quests to do.'); return; }
 
-            // ONE AT A TIME
-            for (const q of validQuests) {
-                if (manager.stopped) break;
-                await this._runQuest(manager, q);
+            manager.setLogger((msg) => this.log(msg));
+
+            const validQuests = manager.filterQuestsValid();
+            this.log('system', `Found ${validQuests.length} valid quests.`);
+
+            if (validQuests.length === 0) {
+                this.log('system', 'No quests to do.');
+                this.isRunning = false;
+                return;
             }
-            this.log('All quests finished.');
+
+            // Run all quests in parallel (roxy-plus style)
+            const promises = validQuests.map(async (q) => {
+                const appName = q.config.messages?.quest_name || q.config.application?.name || q.id;
+                const appId = q.config.application?.id || null;
+                this.currentQuestInfo = { id: q.id, name: appName, appId };
+
+                await new Promise(r => setTimeout(r, Math.random() * 5000));
+                try {
+                    await manager.doingQuest(q);
+                } catch (e) {
+                    if (e.message !== 'Stopped') {
+                        this.log(q.id, `Error: ${e.message}`);
+                    }
+                }
+            });
+
+            await Promise.all(promises);
+            this.log('system', 'All quests finished processing.');
+
         } catch (error) {
-            this.log(`Critical Error: ${error.message}`);
+            this.log('system', `Critical Error: ${error.message}`);
         } finally {
             this.isRunning = false;
             this.currentQuestInfo = null;
             this.activeManager = null;
+            this.client.destroy().catch(() => {});
         }
     }
 
-    // Start a single quest by ID
+    // Start a single quest by ID (kept for panel UI compatibility)
     async startOne(questId) {
-        if (this.isRunning) { this.log('Already running.'); return; }
+        if (this.isRunning) { this.log('system', 'Already running.'); return; }
         this.isRunning = true;
-        this.log(`Starting quest ${questId}...`);
+        this.log('system', `Starting quest ${questId}...`);
         try {
             let manager = this.activeManager;
             if (!manager) {
@@ -86,52 +126,35 @@ class QuestManagerBridge {
                 manager.setLogger((msg) => this.log(msg));
             }
             const quest = manager.get(questId);
-            if (!quest) { this.log(`Quest ${questId} not found.`); return; }
-            if (quest.isCompleted()) { this.log('Quest already completed.'); return; }
-            if (quest.isExpired()) { this.log('Quest has expired.'); return; }
-            await this._runQuest(manager, quest);
-            this.log('Quest finished.');
+            if (!quest) { this.log('system', `Quest ${questId} not found.`); return; }
+            if (quest.isCompleted()) { this.log('system', 'Quest already completed.'); return; }
+            if (quest.isExpired()) { this.log('system', 'Quest has expired.'); return; }
+
+            const appName = quest.config.messages?.quest_name || quest.config.application?.name || quest.id;
+            const appId = quest.config.application?.id || null;
+            this.currentQuestInfo = { id: quest.id, name: appName, appId };
+
+            await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
+            await manager.doingQuest(quest);
+            this.log('system', 'Quest finished.');
         } catch (error) {
-            this.log(`Error: ${error.message}`);
+            if (error.message !== 'Stopped') {
+                this.log('system', `Error: ${error.message}`);
+            }
         } finally {
             this.isRunning = false;
             this.currentQuestInfo = null;
             this.activeManager = null;
-        }
-    }
-
-    async _runQuest(manager, quest) {
-        const appName = quest.config.messages?.quest_name || quest.config.application?.name || quest.id;
-        const appId = quest.config.application?.id || null;
-        this.currentQuestInfo = { id: quest.id, name: appName, appId };
-
-        // Set Discord presence: Playing [game] while quest runs
-        if (this.onPresenceChange && appId) {
-            try { await this.onPresenceChange({ name: appName, appId, start: Date.now() }); }
-            catch (e) { this.log(`Presence set error: ${e.message}`); }
-        }
-
-        try {
-            await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
-            await manager.doingQuest(quest);
-        } catch (e) {
-            if (e.message !== 'Stopped') this.log(`Quest error: ${e.message}`);
-        } finally {
-            this.currentQuestInfo = null;
-            // Restore original presence after quest finishes
-            if (this.onPresenceChange) {
-                try { await this.onPresenceChange(null); }
-                catch (e) { this.log(`Presence restore error: ${e.message}`); }
-            }
+            this.client.destroy().catch(() => {});
         }
     }
 
     stopAll() {
         if (this.activeManager) {
             this.activeManager.stopAll();
-            this.log('Stopping all quests...');
+            this.log('system', 'Stopping all tasks immediately...');
         } else {
-            this.log('Nothing to stop.');
+            this.log('system', 'Nothing to stop.');
         }
         this.isRunning = false;
     }

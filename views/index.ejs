@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Onyx Panel — Pink Edition</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -329,6 +329,10 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
       <div class="card">
         <div class="card-title"><i class="fas fa-info-circle"></i> RPC Details</div>
         <div class="field">
+          <label>Application ID</label>
+          <input type="text" id="rpc_application_id" placeholder="e.g. 123456789012345678" oninput="markDirty()">
+        </div>
+        <div class="field">
           <label>Details</label>
           <input type="text" id="rpc_details" placeholder="What are you doing?" oninput="markDirty();updatePreview()">
         </div>
@@ -350,15 +354,59 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
         <div class="card-title"><i class="fas fa-image"></i> Assets</div>
         <div class="field">
           <label>Large Image (URL or Key)</label>
-          <input type="text" id="rpc_large_image" placeholder="https://..." oninput="markDirty();updatePreview()">
+          <input type="text" id="rpc_large_image" placeholder="https://... or asset key" oninput="markDirty();updatePreview()">
         </div>
         <div class="field">
           <label>Large Image Text</label>
-          <input type="text" id="rpc_large_text" placeholder="Hover text" oninput="markDirty()">
+          <input type="text" id="rpc_large_text" placeholder="Hover tooltip" oninput="markDirty()">
         </div>
         <div class="field">
           <label>Small Image (URL or Key)</label>
-          <input type="text" id="rpc_small_image" placeholder="https://..." oninput="markDirty()">
+          <input type="text" id="rpc_small_image" placeholder="https://... or asset key" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Small Image Text</label>
+          <input type="text" id="rpc_small_text" placeholder="Hover tooltip" oninput="markDirty()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-link"></i> Buttons</div>
+        <div class="field">
+          <label>Button 1 Label</label>
+          <input type="text" id="rpc_button1_text" placeholder="Visit Website" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Button 1 URL</label>
+          <input type="text" id="rpc_button1_url" placeholder="https://..." oninput="markDirty()">
+        </div>
+        <hr style="border-color:var(--border);margin:16px 0">
+        <div class="field">
+          <label>Button 2 Label</label>
+          <input type="text" id="rpc_button2_text" placeholder="Join Server" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Button 2 URL</label>
+          <input type="text" id="rpc_button2_url" placeholder="https://..." oninput="markDirty()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-comment-dots"></i> Custom Status</div>
+        <div class="toggle-row">
+          <div>
+            <strong>Enable Custom Status</strong>
+            <div style="font-size:0.75rem; color:var(--text-dim)">Shows text & emoji under your username</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="custom_status_enabled" onchange="markDirty()"><span class="slider"></span></label>
+        </div>
+        <div class="field" style="margin-top:15px">
+          <label>Status Text</label>
+          <input type="text" id="custom_status_text" placeholder="Vibing..." oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Emoji</label>
+          <input type="text" id="custom_status_emoji" placeholder="🎮 or <:name:id>" oninput="markDirty()">
         </div>
       </div>
     </div>
@@ -522,6 +570,7 @@ async function loadForm() {
     sc('rpc_enabled', c.rpc?.enabled);
     sv('rpc_type', c.rpc?.type || 'PLAYING');
     sv('rpc_name', c.rpc?.name || '');
+    sv('rpc_application_id', c.rpc?.application_id || '');
     sv('rpc_details', c.rpc?.details || '');
     sv('rpc_state', c.rpc?.state || '');
     sv('rpc_stream_url', c.rpc?.stream_url || '');
@@ -529,6 +578,14 @@ async function loadForm() {
     sv('rpc_large_image', c.rpc?.large_image || '');
     sv('rpc_large_text', c.rpc?.large_text || '');
     sv('rpc_small_image', c.rpc?.small_image || '');
+    sv('rpc_small_text', c.rpc?.small_text || '');
+    sv('rpc_button1_text', c.rpc?.button1_text || '');
+    sv('rpc_button1_url', c.rpc?.button1_url || '');
+    sv('rpc_button2_text', c.rpc?.button2_text || '');
+    sv('rpc_button2_url', c.rpc?.button2_url || '');
+    sc('custom_status_enabled', c.custom_status?.enabled);
+    sv('custom_status_text', c.custom_status?.text || '');
+    sv('custom_status_emoji', c.custom_status?.emoji || '');
     
     updatePreview();
     toggleStreamUrl();
@@ -544,13 +601,24 @@ async function saveAll() {
       enabled: gc('rpc_enabled'),
       type: gv('rpc_type'),
       name: gv('rpc_name'),
+      application_id: gv('rpc_application_id'),
       details: gv('rpc_details'),
       state: gv('rpc_state'),
       stream_url: gv('rpc_stream_url'),
       show_elapsed: gc('rpc_show_elapsed'),
       large_image: gv('rpc_large_image'),
       large_text: gv('rpc_large_text'),
-      small_image: gv('rpc_small_image')
+      small_image: gv('rpc_small_image'),
+      small_text: gv('rpc_small_text'),
+      button1_text: gv('rpc_button1_text'),
+      button1_url: gv('rpc_button1_url'),
+      button2_text: gv('rpc_button2_text'),
+      button2_url: gv('rpc_button2_url')
+    },
+    custom_status: {
+      enabled: gc('custom_status_enabled'),
+      text: gv('custom_status_text'),
+      emoji: gv('custom_status_emoji')
     }
   };
   const d = await fetch('/api/config', {
