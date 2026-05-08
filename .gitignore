@@ -6,5 +6,4 @@ hello.py
 .env
 node_modules/
 config.yml
-start.js
 start.js.old
