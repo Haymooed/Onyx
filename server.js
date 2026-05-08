@@ -343,7 +343,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/config', (req, res) => {
-    res.json(loadConfig());
+    res.json({ success: true, config: loadConfig() });
 });
 
 app.post('/api/config', async (req, res) => {
@@ -360,19 +360,17 @@ app.post('/api/config', async (req, res) => {
     }
 });
 
-app.post('/api/connect', async (req, res) => {
+app.post('/api/start', async (req, res) => {
     if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-
-    const { token } = req.body || {};
-    if (!token) return res.json({ success: false, error: 'Token required' });
 
     try {
         const cfg = loadConfig();
-        cfg.token = token;
-        saveConfig(cfg);
+        if (!cfg.token || cfg.token === 'PASTE_YOUR_TOKEN_HERE') {
+            return res.json({ success: false, error: 'Token not set' });
+        }
 
         questBridge = null;
-        await connectClient(token);
+        await connectClient(cfg.token);
 
         setTimeout(() => {
             res.json({
@@ -392,7 +390,7 @@ app.get('/api/status', (req, res) => {
     res.json({ state: clientState, error: clientError, tag: currentTag });
 });
 
-app.post('/api/disconnect', (req, res) => {
+app.post('/api/stop', (req, res) => {
     if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
 
     stopClient();

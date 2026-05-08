@@ -1,747 +1,770 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Onyx Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Onyx Panel — Pink Edition</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Space Grotesk',sans-serif}
-:root{
-  --bg:#06080f;--surface:#0b1020;--surface2:#0f1829;--surface3:#131e35;
-  --border:rgba(0,160,255,.14);--border-hover:rgba(0,160,255,.3);
-  --accent:#0090ff;--accent2:#0050ff;--accent-glow:rgba(0,144,255,.25);
-  --text:#d8e4f8;--text-dim:#4a5e80;--text-muted:#2e3e58;
-  --green:#00d97e;--red:#ff4d4d;--yellow:#ffaa00;
+:root {
+  --bg: #0f0b12;
+  --surface: #1a1420;
+  --surface2: #241c2c;
+  --surface3: #2d2436;
+  --border: rgba(255, 105, 180, 0.15);
+  --border-hover: rgba(255, 105, 180, 0.3);
+  --accent: #ff69b4; /* Hot Pink */
+  --accent2: #ff1493; /* Deep Pink */
+  --accent-glow: rgba(255, 105, 180, 0.3);
+  --text: #f8e8f0;
+  --text-dim: #b09eb0;
+  --text-muted: #6e5e6e;
+  --green: #00d97e;
+  --red: #ff4d4d;
+  --yellow: #ffaa00;
+  --sidebar-width: 240px;
 }
-body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px 16px 72px;
-  background-image:radial-gradient(ellipse at 0% 0%,rgba(0,100,255,.06) 0%,transparent 40%),
-                   radial-gradient(ellipse at 100% 100%,rgba(0,60,200,.04) 0%,transparent 40%)}
-.topbar{max-width:880px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent2),var(--accent));
-  border-radius:10px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 16px var(--accent-glow)}
-.brand-icon svg{width:18px;height:18px;fill:#fff}
-.brand h1{font-size:1.2rem;font-weight:700;letter-spacing:-.02em;
-  background:linear-gradient(90deg,#fff,#7ab8ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.topbar-right{display:flex;align-items:center;gap:14px}
-.topbar-right a{color:var(--text-dim);font-size:.78rem;text-decoration:none;transition:.2s;display:flex;align-items:center;gap:5px}
-.topbar-right a:hover{color:var(--text)}
-.wrap{max-width:880px;margin:0 auto;display:grid;gap:14px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
-.card-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
-  color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title i{font-size:.75rem;opacity:.8}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:560px){.grid2{grid-template-columns:1fr}}
-.field label{display:block;font-size:.67rem;color:var(--text-dim);font-weight:700;
-  text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
-input[type=text],input[type=password],input[type=url],select{
-  width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);font-size:.88rem;outline:none;transition:.2s;font-family:inherit}
-input::placeholder{color:var(--text-muted)}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,144,255,.1)}
-select option{background:var(--surface2)}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.toggle-row:last-child{border-bottom:none;padding-bottom:0}
-.tl-label{font-size:.85rem;line-height:1.4}
-.tl-label small{display:block;color:var(--text-dim);font-size:.72rem;margin-top:2px}
-.switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;inset:0;background:var(--surface3);border-radius:22px;cursor:pointer;transition:.25s;border:1px solid var(--border)}
-.slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#3a4a65;border-radius:50%;transition:.25s}
-input:checked+.slider{background:var(--accent2);border-color:var(--accent)}
-input:checked+.slider:before{transform:translateX(18px);background:#fff}
-.sep{border:none;border-top:1px solid rgba(255,255,255,.05);margin:14px 0}
-.conn-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:.3s}
-.dot-g{background:var(--green);box-shadow:0 0 8px var(--green)}
-.dot-y{background:var(--yellow);box-shadow:0 0 8px var(--yellow)}
-.dot-r{background:var(--red);box-shadow:0 0 8px var(--red)}
-.dot-gray{background:#2a3a55}
-.conn-tag{font-size:.88rem;color:#fff;font-weight:600}
-.conn-sub{font-size:.72rem;color:var(--text-dim)}
-.token-row{display:flex;gap:8px}
-.token-row input{flex:1}
-.note{font-size:.68rem;color:var(--text-muted);margin-top:8px;display:flex;align-items:center;gap:5px}
-.btn{padding:9px 18px;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;
-  transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;letter-spacing:.01em}
-.btn-primary{background:linear-gradient(90deg,var(--accent2),var(--accent));color:#fff;
-  box-shadow:0 3px 14px var(--accent-glow)}
-.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,144,255,.4)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-ghost{background:rgba(0,160,255,.07);border:1px solid var(--border);color:var(--accent)}
-.btn-ghost:hover{background:rgba(0,160,255,.13);border-color:var(--border-hover)}
-.btn-danger{background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);color:var(--red)}
-.btn-danger:hover{background:rgba(255,60,60,.16)}
-.btn-sm{padding:6px 12px;font-size:.76rem}
-.preview{background:var(--surface2);border:1px solid rgba(255,255,255,.06);border-radius:10px;
-  padding:14px;display:flex;gap:12px;align-items:flex-start;margin-top:14px}
-.prev-img{width:56px;height:56px;border-radius:8px;background:var(--surface3);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:1.2rem;overflow:hidden}
-.prev-img img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.prev-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:3px}
-.prev-name{font-size:.92rem;font-weight:700;color:#fff}
-.prev-details,.prev-state{font-size:.78rem;color:#8899bb;margin-top:2px}
-.save-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 20px;
-  background:rgba(6,8,15,.95);border-top:1px solid rgba(0,160,255,.1);backdrop-filter:blur(16px);
-  display:flex;align-items:center;justify-content:space-between;z-index:99}
-.save-bar .hint{font-size:.75rem;color:var(--text-dim)}
-.toast{position:fixed;top:16px;right:16px;padding:10px 16px;border-radius:9px;font-size:.82rem;
-  font-weight:600;z-index:200;animation:tin .25s ease;pointer-events:none}
-.tok{background:#0a2a1a;border:1px solid var(--green);color:var(--green)}
-.terr{background:#2a0a0a;border:1px solid var(--red);color:var(--red)}
-@keyframes tin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── Quest Styles ── */
-.quest-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.quest-list{display:grid;gap:8px;margin-bottom:14px}
-.quest-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:12px 14px;display:flex;align-items:center;gap:12px;transition:.2s}
-.quest-item:hover{border-color:var(--border-hover)}
-.quest-item.completed{opacity:.45}
-.quest-item.running{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,144,255,.12)}
-.quest-icon{width:40px;height:40px;border-radius:8px;background:var(--surface3);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
-.quest-icon img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.quest-info{flex:1;min-width:0}
-.quest-name{font-size:.88rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.quest-meta{font-size:.7rem;color:var(--text-dim);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:.65rem;font-weight:700}
-.badge-play{background:rgba(0,144,255,.1);color:var(--accent)}
-.badge-video{background:rgba(255,170,0,.1);color:var(--yellow)}
-.badge-done{background:rgba(0,217,126,.1);color:var(--green)}
-.badge-exp{background:rgba(255,77,77,.1);color:var(--red)}
-.quest-log{background:#060c18;border:1px solid var(--border);border-radius:10px;
-  padding:12px;height:200px;overflow-y:auto;font-family:monospace;font-size:.74rem;
-  color:#6a8aaa;line-height:1.6;scroll-behavior:smooth}
-.quest-log .log-line{margin-bottom:1px}
-.quest-log .log-done{color:var(--green)}
-.quest-log .log-err{color:var(--red)}
-.quest-log .log-info{color:#7ab8ff}
-.quest-running-banner{display:none;align-items:center;gap:8px;padding:8px 12px;
-  background:rgba(0,144,255,.07);border:1px solid rgba(0,144,255,.2);border-radius:8px;margin-bottom:12px}
-.quest-running-banner.active{display:flex}
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(0,144,255,.3);
-  border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.quest-empty{text-align:center;padding:24px;color:var(--text-dim);font-size:.82rem}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
 
-/* ── Lists (messages / auto rules) ── */
-.row-list{display:grid;gap:8px;margin-top:10px}
-.row-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.row-item .ri-main{flex:1 1 220px;min-width:0;font-size:.82rem}
-.row-item .ri-sub{font-size:.7rem;color:var(--text-dim);margin-top:2px;word-break:break-word}
-.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.65rem;font-weight:700;
-  background:rgba(0,144,255,.1);color:var(--accent)}
-.empty{text-align:center;padding:18px;color:var(--text-dim);font-size:.82rem}
-textarea{width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);font-size:.88rem;outline:none;resize:vertical;
-  font-family:inherit;min-height:60px}
-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,144,255,.1)}
-input[type=number],input[type=datetime-local]{
-  width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);font-size:.88rem;outline:none;font-family:inherit}
-input[type=number]:focus,input[type=datetime-local]:focus{border-color:var(--accent)}
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  background-image: radial-gradient(ellipse at 0% 0%, rgba(255, 105, 180, 0.08) 0%, transparent 40%),
+                   radial-gradient(ellipse at 100% 100%, rgba(255, 20, 147, 0.05) 0%, transparent 40%);
+}
 
-/* ── Mobile polish ── */
-@media(max-width:560px){
-  body{padding:14px 10px 110px}
-  .card{padding:16px;border-radius:12px}
-  .topbar{margin-bottom:14px}
-  .brand h1{font-size:1.05rem}
-  .topbar-right a{font-size:.72rem}
-  .conn-row{gap:8px}
-  .token-row{flex-direction:column;align-items:stretch}
-  .token-row .btn{width:100%;justify-content:center}
-  .quest-toolbar .btn{flex:1 1 auto;justify-content:center}
-  .quest-toolbar{gap:6px}
-  .save-bar{flex-direction:column;gap:8px;align-items:stretch;padding:10px 14px}
-  .save-bar .btn{width:100%;justify-content:center}
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.brand-icon svg { width: 18px; height: 18px; fill: #fff; }
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  background: linear-gradient(90deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-links {
+  padding: 16px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  transition: .2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.nav-item i { width: 18px; text-align: center; }
+
+.nav-item:hover {
+  background: rgba(255, 105, 180, 0.05);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: rgba(255, 105, 180, 0.1);
+  color: var(--accent);
+  border-color: var(--border);
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Main Content */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 32px;
+  max-width: calc(100vw - var(--sidebar-width));
+}
+
+.section { display: none; animation: fadeIn 0.3s ease; }
+.section.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h2 { font-size: 1.5rem; font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+/* Cards & Components */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; height: 100%; }
+.card-title {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
+  color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+}
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: .7rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+
+input[type=text], input[type=password], input[type=url], input[type=number], input[type=datetime-local], select, textarea {
+  width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: .9rem; outline: none; transition: .2s; font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.1); }
+
+.btn {
+  padding: 10px 20px; border: none; border-radius: 10px; font-size: .85rem; font-weight: 700; cursor: pointer;
+  transition: .2s; font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
+}
+
+.btn-primary { background: linear-gradient(90deg, var(--accent2), var(--accent)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4); }
+.btn-ghost { background: rgba(255, 105, 180, 0.08); border: 1px solid var(--border); color: var(--accent); }
+.btn-ghost:hover { background: rgba(255, 105, 180, 0.15); }
+.btn-danger { background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); color: var(--red); }
+.btn-danger:hover { background: rgba(255, 77, 77, 0.2); }
+
+/* Presence Preview */
+.preview { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; gap: 16px; align-items: flex-start; margin-top: 16px; }
+.prev-img { width: 64px; height: 64px; border-radius: 10px; background: var(--surface3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1.5rem; overflow: hidden; }
+.prev-img img { width: 100%; height: 100%; object-fit: cover; }
+.prev-type { font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.prev-name { font-size: 1rem; font-weight: 700; color: #fff; }
+.prev-details, .prev-state { font-size: .85rem; color: var(--text-dim); margin-top: 2px; }
+
+/* Connection Status */
+.status-card { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-g { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.dot-y { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.dot-r { background: var(--red); box-shadow: 0 0 10px var(--red); }
+.status-info { flex: 1; }
+.status-tag { font-weight: 700; font-size: 0.9rem; }
+.status-sub { font-size: 0.75rem; color: var(--text-dim); }
+
+/* Toggles */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.toggle-row:last-child { border-bottom: none; }
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface3); transition: .4s; border-radius: 24px; border: 1px solid var(--border); }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent2); border-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); background-color: white; }
+
+/* Lists */
+.row-list { display: grid; gap: 10px; margin-top: 10px; }
+.row-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+.ri-main { flex: 1; }
+.tag { background: rgba(255, 105, 180, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 99px; font-size: .65rem; font-weight: 700; margin-right: 6px; }
+
+/* Quests */
+.quest-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+.quest-icon { width: 48px; height: 48px; border-radius: 10px; background: var(--surface3); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.quest-icon img { width: 100%; height: 100%; object-fit: cover; }
+.quest-info { flex: 1; }
+.quest-log { background: #0a080d; border: 1px solid var(--border); border-radius: 12px; padding: 16px; height: 300px; overflow-y: auto; font-family: monospace; font-size: .8rem; color: #d0c0d0; line-height: 1.6; }
+
+/* Toast & Save Bar */
+.save-bar { position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; background: var(--surface); border: 1px solid var(--accent); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 20px; z-index: 200; transform: translateY(100px); transition: .3s; }
+.save-bar.active { transform: translateY(0); }
+.toast { position: fixed; top: 24px; right: 24px; padding: 12px 24px; border-radius: 12px; font-weight: 600; z-index: 300; animation: slideIn 0.3s ease; }
+.tok { background: #1a2a1a; border: 1px solid var(--green); color: var(--green); }
+.terr { background: #2a1a1a; border: 1px solid var(--red); color: var(--red); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .brand-name, .nav-item span { display: none; }
+  .main-content { margin-left: 60px; padding: 20px; max-width: calc(100vw - 60px); }
+  .nav-item { padding: 12px; justify-content: center; }
 }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand">
+<div class="sidebar">
+  <div class="sidebar-header">
     <div class="brand-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/></svg>
     </div>
-    <h1>Onyx Panel</h1>
+    <span class="brand-name">Onyx Panel</span>
   </div>
-  <div class="topbar-right">
-    <a href="https://github.com/Haymooed/Onyx" target="_blank"><i class="fab fa-github"></i> GitHub</a>
-    <a href="/api/updates" target="_blank"><i class="fas fa-rss"></i> Updates</a>
+  <div class="nav-links">
+    <div class="nav-item active" onclick="showSection('presence')"><i class="fas fa-id-card"></i> <span>Presence</span></div>
+    <div class="nav-item" onclick="showSection('quests')"><i class="fas fa-khanda"></i> <span>Quests</span></div>
+    <div class="nav-item" onclick="showSection('automation')"><i class="fas fa-robot"></i> <span>Automation</span></div>
+    <div class="nav-item" onclick="showSection('messages')"><i class="fas fa-paper-plane"></i> <span>Messages</span></div>
+    <div class="nav-item" onclick="showSection('utility')"><i class="fas fa-tools"></i> <span>Utility</span></div>
+  </div>
+  <div class="sidebar-footer">
+    <a href="/login" class="nav-item" style="color: var(--red)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
   </div>
 </div>
 
-<div class="wrap">
-  <!-- Connection -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-link"></i> Connection</div>
-    <div class="conn-row">
-      <div id="connDot" class="dot dot-gray"></div>
-      <div style="flex:1">
-        <div id="connTag" class="conn-tag">Not connected</div>
-        <div id="connSub" class="conn-sub">disconnected</div>
-      </div>
-      <button id="disconnectBtn" class="btn btn-danger btn-sm" style="display:none" onclick="disconnectAcc()"><i class="fas fa-power-off"></i> Disconnect</button>
+<div class="main-content">
+  <!-- Status Card -->
+  <div class="status-card">
+    <div id="statusDot" class="dot dot-gray"></div>
+    <div class="status-info">
+      <div id="statusTag" class="status-tag">Checking...</div>
+      <div id="statusSub" class="status-sub">Attempting to connect to backend</div>
     </div>
-    <div class="token-row">
-      <input type="password" id="tokenInput" placeholder="Enter your Discord token">
-      <button id="connectBtn" class="btn btn-primary" onclick="connectAcc()"><i class="fas fa-bolt"></i> Connect</button>
-    </div>
-    <div class="note"><i class="fas fa-info-circle"></i> Your token is saved locally in config.yml</div>
+    <button id="connectBtn" class="btn btn-primary" onclick="toggleConnect()"><i class="fas fa-plug"></i> Connect</button>
   </div>
 
-  <!-- Presence Settings -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-sliders"></i> Presence Settings</div>
-    <div class="toggle-row">
-      <div class="tl-label">Enable Rich Presence<small>Show a custom activity on your Discord profile</small></div>
-      <label class="switch"><input type="checkbox" id="rpc_enabled" onchange="livePreview()"><span class="slider"></span></label>
-    </div>
-    <hr class="sep">
-    <div class="grid2">
-      <div class="field"><label>Activity Type</label>
-        <select id="rpc_type" onchange="livePreview();toggleStreamUrl()">
-          <option value="PLAYING">🎮 Playing</option>
-          <option value="LISTENING">🎵 Listening</option>
-          <option value="WATCHING">📺 Watching</option>
-          <option value="STREAMING">📡 Streaming</option>
-          <option value="COMPETING">🏆 Competing</option>
-        </select>
+  <!-- Presence Section -->
+  <div id="presence" class="section active">
+    <div class="header"><h2>Presence & RPC</h2></div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-cog"></i> General Settings</div>
+        <div class="field">
+          <label>Discord Token</label>
+          <div style="display:flex; gap:8px">
+            <input type="password" id="token" placeholder="mfa.xxxx...">
+            <button class="btn btn-ghost" onclick="saveToken()"><i class="fas fa-save"></i></button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="status" onchange="markDirty()">
+            <option value="online">Online</option>
+            <option value="idle">Idle</option>
+            <option value="dnd">Do Not Disturb</option>
+            <option value="invisible">Invisible</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <strong>Enable RPC</strong>
+            <div style="font-size:0.75rem; color:var(--text-dim)">Show custom activity on profile</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="rpc_enabled" onchange="markDirty()"><span class="slider"></span></label>
+        </div>
       </div>
-      <div class="field"><label>Online Status</label>
-        <select id="status">
-          <option value="online">🟢 Online</option>
-          <option value="idle">🌙 Idle</option>
-          <option value="dnd">🔴 Do Not Disturb</option>
-          <option value="invisible">⚫ Invisible</option>
-        </select>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-eye"></i> Live Preview</div>
+        <div class="preview">
+          <div id="prevImg" class="prev-img"><i class="fas fa-image"></i></div>
+          <div>
+            <div id="prevType" class="prev-type">PLAYING</div>
+            <div id="prevName" class="prev-name">Onyx</div>
+            <div id="prevDetails" class="prev-details"></div>
+            <div id="prevState" class="prev-state"></div>
+          </div>
+        </div>
+        <div style="margin-top: 20px" class="field">
+          <label>Activity Type</label>
+          <select id="rpc_type" onchange="markDirty();toggleStreamUrl();updatePreview()">
+            <option value="PLAYING">Playing</option>
+            <option value="STREAMING">Streaming</option>
+            <option value="LISTENING">Listening to</option>
+            <option value="WATCHING">Watching</option>
+            <option value="COMPETING">Competing in</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Activity Name</label>
+          <input type="text" id="rpc_name" placeholder="Onyx" oninput="markDirty();updatePreview()">
+        </div>
       </div>
-    </div>
-    <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>App Name</label><input type="text" id="rpc_name" placeholder="Onyx" oninput="livePreview()"></div>
-      <div class="field"><label>Application ID <span style="color:var(--text-muted)">(optional)</span></label><input type="text" id="rpc_application_id" placeholder="Discord App ID"></div>
-    </div>
-    <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>Details (line 1)</label><input type="text" id="rpc_details" placeholder="Doing something cool" oninput="livePreview()"></div>
-      <div class="field"><label>State (line 2)</label><input type="text" id="rpc_state" placeholder="with Onyx" oninput="livePreview()"></div>
-    </div>
-    <div class="toggle-row" style="margin-top:10px">
-      <div class="tl-label">Show Elapsed Timer<small>Displays how long the activity has been active</small></div>
-      <label class="switch"><input type="checkbox" id="rpc_show_elapsed"><span class="slider"></span></label>
-    </div>
-    <div class="field" id="streamUrlField" style="margin-top:12px;display:none">
-      <label>Stream URL</label><input type="url" id="rpc_stream_url" placeholder="https://twitch.tv/yourchannel">
-    </div>
-  </div>
 
-  <!-- Images -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-image"></i> Images</div>
-    <div class="grid2">
-      <div class="field"><label>Large Image URL</label><input type="url" id="rpc_large_image" placeholder="https://i.imgur.com/…" oninput="livePreview()"></div>
-      <div class="field"><label>Large Image Hover Text</label><input type="text" id="rpc_large_text" placeholder="Hover text…"></div>
-      <div class="field"><label>Small Image URL</label><input type="url" id="rpc_small_image" placeholder="https://i.imgur.com/…"></div>
-      <div class="field"><label>Small Image Hover Text</label><input type="text" id="rpc_small_text" placeholder="Hover text…"></div>
-    </div>
-    <div class="preview">
-      <div class="prev-img" id="prevImg"><i class="fas fa-image"></i></div>
-      <div>
-        <div class="prev-type" id="prevType">PLAYING</div>
-        <div class="prev-name" id="prevName">Onyx</div>
-        <div class="prev-details" id="prevDetails">Doing something cool</div>
-        <div class="prev-state" id="prevState">with Onyx</div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-info-circle"></i> RPC Details</div>
+        <div class="field">
+          <label>Details</label>
+          <input type="text" id="rpc_details" placeholder="What are you doing?" oninput="markDirty();updatePreview()">
+        </div>
+        <div class="field">
+          <label>State</label>
+          <input type="text" id="rpc_state" placeholder="Current state" oninput="markDirty();updatePreview()">
+        </div>
+        <div id="streamUrlField" class="field" style="display:none">
+          <label>Twitch URL</label>
+          <input type="text" id="rpc_stream_url" placeholder="https://twitch.tv/..." oninput="markDirty()">
+        </div>
+        <div class="toggle-row">
+          <div><strong>Show Elapsed Time</strong></div>
+          <label class="switch"><input type="checkbox" id="rpc_show_elapsed" onchange="markDirty()"><span class="slider"></span></label>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Buttons -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-mouse-pointer"></i> Buttons <span style="color:var(--text-muted);text-transform:none;margin-left:5px;font-weight:400">(Self-only)</span></div>
-    <div class="grid2">
-      <div class="field"><label>Button 1 Text</label><input type="text" id="rpc_button1_text" placeholder="Visit Website"></div>
-      <div class="field"><label>Button 1 URL</label><input type="url" id="rpc_button1_url" placeholder="https://…"></div>
-      <div class="field" style="margin-top:8px"><label>Button 2 Text</label><input type="text" id="rpc_button2_text" placeholder="Join Discord"></div>
-      <div class="field" style="margin-top:8px"><label>Button 2 URL</label><input type="url" id="rpc_button2_url" placeholder="https://…"></div>
-    </div>
-    <div class="note"><i class="fas fa-exclamation-triangle"></i> Discord only shows buttons to you, not others (Selfbot limitation).</div>
-  </div>
-
-  <!-- Custom Status -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-comment-dots"></i> Custom Status</div>
-    <div class="toggle-row">
-      <div class="tl-label">Show custom status<small>The line under your username, separate from RPC</small></div>
-      <label class="switch"><input type="checkbox" id="custom_status_enabled"><span class="slider"></span></label>
-    </div>
-    <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>Status Text</label><input type="text" id="custom_status_text" placeholder="Just chillin'"></div>
-      <div class="field"><label>Emoji <span style="color:var(--text-muted)">(unicode or &lt;:name:id&gt;)</span></label><input type="text" id="custom_status_emoji" placeholder="🎮"></div>
-    </div>
-  </div>
-
-  <!-- Messaging -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-paper-plane"></i> Scheduled & Recurring Messages
-      <span style="margin-left:auto;font-size:.6rem;color:var(--text-muted);text-transform:none;letter-spacing:0;font-weight:400">
-        Channel ID or User ID
-      </span>
-    </div>
-
-    <!-- Scheduled (one-time) -->
-    <div style="margin-bottom:14px">
-      <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">One-time scheduled</label>
-      <div class="grid2">
-        <div class="field"><label>Target ID</label><input type="text" id="sch_target" placeholder="Channel or User ID"></div>
-        <div class="field"><label>Send at</label><input type="datetime-local" id="sch_when"></div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-image"></i> Assets</div>
+        <div class="field">
+          <label>Large Image (URL or Key)</label>
+          <input type="text" id="rpc_large_image" placeholder="https://..." oninput="markDirty();updatePreview()">
+        </div>
+        <div class="field">
+          <label>Large Image Text</label>
+          <input type="text" id="rpc_large_text" placeholder="Hover text" oninput="markDirty()">
+        </div>
+        <div class="field">
+          <label>Small Image (URL or Key)</label>
+          <input type="text" id="rpc_small_image" placeholder="https://..." oninput="markDirty()">
+        </div>
       </div>
-      <div class="field" style="margin-top:8px"><label>Message</label><textarea id="sch_msg" placeholder="Hello!"></textarea></div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addScheduled()"><i class="fas fa-plus"></i> Schedule Message</button>
-      <div id="sch_list" class="row-list"></div>
-    </div>
-
-    <hr class="sep">
-
-    <!-- Recurring (interval) -->
-    <div>
-      <label style="font-size:.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:8px">Recurring (Interval)</label>
-      <div class="grid2">
-        <div class="field"><label>Target ID</label><input type="text" id="rec_target" placeholder="Channel or User ID"></div>
-        <div class="field"><label>Interval (minutes)</label><input type="number" id="rec_interval" placeholder="60" min="1"></div>
-      </div>
-      <div class="field" style="margin-top:8px"><label>Message</label><textarea id="rec_msg" placeholder="Bump!"></textarea></div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addRecurring()"><i class="fas fa-repeat"></i> Add Recurring</button>
-      <div id="rec_list" class="row-list"></div>
     </div>
   </div>
 
-  <!-- Auto Features -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-robot"></i> Automation</div>
+  <!-- Quests Section -->
+  <div id="quests" class="section">
+    <div class="header">
+      <h2>Discord Quests</h2>
+      <div style="display:flex; gap:10px">
+        <button class="btn btn-ghost" onclick="loadQuests()"><i class="fas fa-sync"></i> Refresh</button>
+        <button id="startAllBtn" class="btn btn-primary" onclick="startAllQuests()"><i class="fas fa-play"></i> Start All</button>
+        <button id="stopBtn" class="btn btn-danger" style="display:none" onclick="stopQuests()"><i class="fas fa-stop"></i> Stop</button>
+      </div>
+    </div>
     
-    <!-- AFK -->
-    <div class="toggle-row">
-      <div class="tl-label">AFK Auto-Responder<small>Replies to DMs when you're away</small></div>
-      <label class="switch"><input type="checkbox" id="afk_enabled"><span class="slider"></span></label>
+    <div id="questBanner" class="status-card" style="display:none; border-color: var(--accent)">
+      <div class="dot dot-g"></div>
+      <div id="questBannerText" class="status-info">Running quests...</div>
     </div>
-    <div class="field" style="margin-top:10px"><label>AFK Message</label><input type="text" id="afk_msg" placeholder="I'm AFK right now."></div>
 
-    <hr class="sep">
-
-    <!-- Auto React -->
-    <div class="toggle-row">
-      <div class="tl-label">Auto-React<small>React to messages from specific users or keywords</small></div>
-      <label class="switch"><input type="checkbox" id="react_enabled"><span class="slider"></span></label>
-    </div>
-    <div class="note" style="margin-bottom:10px">Configure triggers in <code>data/auto.json</code> for now. UI coming soon.</div>
-
-    <hr class="sep">
-
-    <!-- Auto Reply -->
-    <div class="toggle-row">
-      <div class="tl-label">Auto-Reply Rules<small>Reply to specific phrases in DMs or mentions</small></div>
-      <label class="switch"><input type="checkbox" id="reply_enabled"><span class="slider"></span></label>
-    </div>
-    <div class="note">Configure rules in <code>data/auto.json</code>.</div>
-  </div>
-
-  <!-- Quests -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-trophy"></i> Discord Quests</div>
-    <div class="quest-running-banner" id="questBanner">
-      <div class="spinner"></div>
-      <div id="questBannerText" style="font-size:.78rem;font-weight:600">Running quests…</div>
-    </div>
-    <div class="quest-toolbar">
-      <button class="btn btn-primary btn-sm" id="startAllBtn" onclick="startAllQuests()"><i class="fas fa-play"></i> Start All Quests</button>
-      <button class="btn btn-danger btn-sm" id="stopBtn" style="display:none" onclick="stopQuests()"><i class="fas fa-stop"></i> Stop All</button>
-      <button class="btn btn-ghost btn-sm" onclick="loadQuests()"><i class="fas fa-sync"></i> Refresh</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearQuestLogs()"><i class="fas fa-trash"></i> Clear Logs</button>
-    </div>
-    <div id="questList" class="quest-list">
-      <div class="quest-empty">Connect your account to see available quests</div>
-    </div>
-    <div class="quest-log" id="questLog">
-      <span style="color:var(--text-muted)">Quest logs will appear here…</span>
-    </div>
-  </div>
-
-  <!-- Utility -->
-  <div class="card">
-    <div class="card-title"><i class="fas fa-tools"></i> Quick Tools</div>
-    <div class="grid2">
-      <div class="field">
-        <label>Purge Messages</label>
-        <div style="display:flex;gap:6px">
-          <input type="text" id="purge_channel" placeholder="Channel ID" style="flex:1">
-          <input type="number" id="purge_count" value="10" style="width:60px">
-          <button class="btn btn-danger btn-sm" onclick="runPurge()">Purge</button>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> Available Quests</div>
+        <div id="questList" class="quest-list">
+          <div class="quest-empty">Loading quests...</div>
         </div>
       </div>
-      <div class="field">
-        <label>Send Direct Message</label>
-        <div style="display:flex;gap:6px">
-          <input type="text" id="send_target" placeholder="User ID" style="flex:1">
-          <button class="btn btn-primary btn-sm" onclick="runSend()">Send</button>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-terminal"></i> Protocol Logs</div>
+        <div id="questLog" class="quest-log">
+          <span style="color:var(--text-muted)">Waiting for protocol start...</span>
         </div>
-        <input type="text" id="send_msg" placeholder="Message content..." style="margin-top:6px">
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="clearQuestLogs()">Clear Logs</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Automation Section -->
+  <div id="automation" class="section">
+    <div class="header"><h2>Automation Features</h2></div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-moon"></i> AFK Mode</div>
+        <div class="toggle-row">
+          <div><strong>Enable AFK</strong><small style="display:block;color:var(--text-dim)">Auto-reply to DMs when active</small></div>
+          <label class="switch"><input type="checkbox" id="afk_enabled"><span class="slider"></span></label>
+        </div>
+        <div class="field" style="margin-top:15px">
+          <label>AFK Message</label>
+          <textarea id="afk_msg" placeholder="I am currently AFK..."></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-bolt"></i> Auto-Features</div>
+        <div class="toggle-row">
+          <div><strong>Auto-React</strong><small style="display:block;color:var(--text-dim)">React to messages in specific channels</small></div>
+          <label class="switch"><input type="checkbox" id="react_enabled"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><strong>Auto-Reply</strong><small style="display:block;color:var(--text-dim)">Reply to keywords automatically</small></div>
+          <label class="switch"><input type="checkbox" id="reply_enabled"><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Section -->
+  <div id="messages" class="section">
+    <div class="header"><h2>Message Scheduler</h2></div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-clock"></i> Schedule One-Time</div>
+        <div class="field"><label>Target ID (Channel/User)</label><input type="text" id="sch_target"></div>
+        <div class="field"><label>Run At</label><input type="datetime-local" id="sch_when"></div>
+        <div class="field"><label>Message Content</label><textarea id="sch_msg"></textarea></div>
+        <button class="btn btn-primary" onclick="addScheduled()">Schedule Message</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-redo"></i> Recurring Messages</div>
+        <div class="field"><label>Target ID</label><input type="text" id="rec_target"></div>
+        <div class="field"><label>Interval (Minutes)</label><input type="number" id="rec_interval" value="60"></div>
+        <div class="field"><label>Message Content</label><textarea id="rec_msg"></textarea></div>
+        <button class="btn btn-primary" onclick="addRecurring()">Add Recurring</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> Scheduled Queue</div>
+        <div id="sch_list" class="row-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> Recurring Queue</div>
+        <div id="rec_list" class="row-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Utility Section -->
+  <div id="utility" class="section">
+    <div class="header"><h2>Utility Tools</h2></div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-trash"></i> Message Purge</div>
+        <div class="field"><label>Channel ID</label><input type="text" id="purge_channel"></div>
+        <div class="field"><label>Count</label><input type="number" id="purge_count" value="100"></div>
+        <button class="btn btn-danger" onclick="runPurge()">Purge My Messages</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-paper-plane"></i> Quick Send</div>
+        <div class="field"><label>Target ID</label><input type="text" id="send_target"></div>
+        <div class="field"><label>Message</label><textarea id="send_msg"></textarea></div>
+        <button class="btn btn-primary" onclick="runSend()">Send Now</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="save-bar">
-  <div class="hint" id="saveHint">You have unsaved changes</div>
-  <div style="display:flex;gap:10px">
-    <button class="btn btn-ghost" onclick="loadForm()">Discard</button>
-    <button class="btn btn-primary" id="saveBtn" onclick="saveAll()"><i class="fas fa-floppy-disk"></i> Save & Apply</button>
+<div id="saveBar" class="save-bar">
+  <div style="color:var(--text-dim); font-size:0.9rem">You have unsaved changes</div>
+  <div style="display:flex; gap:10px">
+    <button class="btn btn-ghost" onclick="resetForm()">Discard</button>
+    <button class="btn btn-primary" onclick="saveAll()">Save Changes</button>
   </div>
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-const gv=id=>$(id).value;
-const sv=(id,v)=>$(id).value=v;
-const gc=id=>$(id).checked;
-const sc=(id,v)=>$(id).checked=v;
+const $ = id => document.getElementById(id);
+const gv = id => $(id).value;
+const sv = (id, v) => $(id).value = v;
+const gc = id => $(id).checked;
+const sc = (id, v) => $(id).checked = !!v;
 
-// ── RPC Form ──────────────────────────────────────────────────────────────────
-async function loadForm(){
-  const cfg=await fetch('/api/config').then(r=>r.json());
-  const r=cfg.rpc||{};
-  sv('tokenInput',cfg.token?'••••••••••••':'');
-  sc('rpc_enabled',r.enabled!==false);
-  sv('rpc_type',r.type||'PLAYING');
-  sv('status',cfg.status||'online');
-  sv('rpc_name',r.name||'');
-  sv('rpc_application_id',r.application_id||'');
-  sv('rpc_details',r.details||'');
-  sv('rpc_state',r.state||'');
-  sc('rpc_show_elapsed',!!r.show_elapsed);
-  sv('rpc_stream_url',r.stream_url||'');
-  sv('rpc_large_image',r.large_image||'');
-  sv('rpc_large_text',r.large_text||'');
-  sv('rpc_small_image',r.small_image||'');
-  sv('rpc_small_text',r.small_text||'');
-  sv('rpc_button1_text',r.button1_text||'');
-  sv('rpc_button1_url',r.button1_url||'');
-  sv('rpc_button2_text',r.button2_text||'');
-  sv('rpc_button2_url',r.button2_url||'');
-  
-  const cst = cfg.custom_status || {};
-  sc('custom_status_enabled',!!cst.enabled);
-  sv('custom_status_text',cst.text||'');
-  sv('custom_status_emoji',cst.emoji||'');
-  toggleStreamUrl(); livePreview(); pollStatus();
-  loadAuto(); loadMessages();
+let isDirty = false;
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id === 'quests') loadQuests();
+  if(id === 'messages') loadMessages();
+  if(id === 'automation') loadAuto();
 }
 
-async function saveAll(){
-  const btn=$('saveBtn');
-  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving…';
-  const body={
-    status:gv('status'),
-    rpc:{
-      enabled:gc('rpc_enabled'),type:gv('rpc_type'),name:gv('rpc_name'),
-      application_id:gv('rpc_application_id'),details:gv('rpc_details'),state:gv('rpc_state'),
-      show_elapsed:gc('rpc_show_elapsed'),stream_url:gv('rpc_stream_url'),
-      large_image:gv('rpc_large_image'),large_text:gv('rpc_large_text'),
-      small_image:gv('rpc_small_image'),small_text:gv('rpc_small_text'),
-      button1_text:gv('rpc_button1_text'),button1_url:gv('rpc_button1_url'),
-      button2_text:gv('rpc_button2_text'),button2_url:gv('rpc_button2_url')
-    },
-    custom_status:{
-      enabled:gc('custom_status_enabled'),
-      text:gv('custom_status_text'),
-      emoji:gv('custom_status_emoji')
+function markDirty() {
+  isDirty = true;
+  $('saveBar').classList.add('active');
+}
+
+function resetDirty() {
+  isDirty = false;
+  $('saveBar').classList.remove('active');
+}
+
+async function loadForm() {
+  try {
+    const d = await fetch('/api/config').then(r => r.json());
+    if (!d.success) return;
+    const c = d.config;
+    sv('token', c.token || '');
+    sv('status', c.status || 'online');
+    sc('rpc_enabled', c.rpc?.enabled);
+    sv('rpc_type', c.rpc?.type || 'PLAYING');
+    sv('rpc_name', c.rpc?.name || '');
+    sv('rpc_details', c.rpc?.details || '');
+    sv('rpc_state', c.rpc?.state || '');
+    sv('rpc_stream_url', c.rpc?.stream_url || '');
+    sc('rpc_show_elapsed', c.rpc?.show_elapsed);
+    sv('rpc_large_image', c.rpc?.large_image || '');
+    sv('rpc_large_text', c.rpc?.large_text || '');
+    sv('rpc_small_image', c.rpc?.small_image || '');
+    
+    updatePreview();
+    toggleStreamUrl();
+    pollStatus();
+    setInterval(pollStatus, 5000);
+  } catch (e) {}
+}
+
+async function saveAll() {
+  const body = {
+    status: gv('status'),
+    rpc: {
+      enabled: gc('rpc_enabled'),
+      type: gv('rpc_type'),
+      name: gv('rpc_name'),
+      details: gv('rpc_details'),
+      state: gv('rpc_state'),
+      stream_url: gv('rpc_stream_url'),
+      show_elapsed: gc('rpc_show_elapsed'),
+      large_image: gv('rpc_large_image'),
+      large_text: gv('rpc_large_text'),
+      small_image: gv('rpc_small_image')
     }
   };
-  const d=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
-  btn.disabled=false;btn.innerHTML='<i class="fas fa-floppy-disk"></i> Save &amp; Apply';
-  if(d.success){toast('Saved & applied!',true);$('saveHint').textContent='Saved ✓';}
-  else toast(d.error||'Save failed',false);
+  const d = await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r => r.json());
+  if (d.success) {
+    toast('Settings saved!', true);
+    resetDirty();
+  } else toast(d.error, false);
 }
 
-async function connectAcc(){
-  const token=gv('tokenInput');
-  if(!token||token.includes('•')){toast('Paste your actual Discord token first',false);return;}
-  const btn=$('connectBtn');
-  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Connecting…';
-  const d=await fetch('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})}).then(r=>r.json());
-  btn.disabled=false;btn.innerHTML='<i class="fas fa-bolt"></i> Connect';
-  if(d.success){toast('Connected as '+d.tag,true);sv('tokenInput','••••••••••••');}
-  else toast(d.error||'Login failed — check your token',false);
+async function saveToken() {
+  const token = gv('token');
+  const d = await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token })
+  }).then(r => r.json());
+  if (d.success) toast('Token updated!', true);
+  else toast(d.error, false);
+}
+
+async function pollStatus() {
+  try {
+    const d = await fetch('/api/status').then(r => r.json());
+    const dot = $('statusDot'), tag = $('statusTag'), sub = $('statusSub'), btn = $('connectBtn');
+    dot.className = 'dot ' + (d.state === 'connected' ? 'dot-g' : d.state === 'connecting' ? 'dot-y' : 'dot-r');
+    tag.textContent = d.state.toUpperCase();
+    sub.textContent = d.state === 'connected' ? `Logged in as ${d.tag}` : d.error || 'Disconnected from Discord';
+    btn.innerHTML = d.state === 'connected' ? '<i class="fas fa-stop"></i> Disconnect' : '<i class="fas fa-plug"></i> Connect';
+    btn.className = 'btn ' + (d.state === 'connected' ? 'btn-danger' : 'btn-primary');
+  } catch (e) {}
+}
+
+async function toggleConnect() {
+  const d = await fetch('/api/status').then(r => r.json());
+  if (d.state === 'connected') await fetch('/api/stop', { method: 'POST' });
+  else await fetch('/api/start', { method: 'POST' });
   pollStatus();
 }
 
-async function disconnectAcc(){
-  await fetch('/api/disconnect',{method:'POST'});
-  toast('Disconnected',true); pollStatus();
+function updatePreview() {
+  const type = gv('rpc_type'), name = gv('rpc_name') || 'Onyx', det = gv('rpc_details'), st = gv('rpc_state'), img = gv('rpc_large_image');
+  $('prevType').textContent = type;
+  $('prevName').textContent = name;
+  const de = $('prevDetails'), se = $('prevState');
+  de.textContent = det; de.style.display = det ? 'block' : 'none';
+  se.textContent = st; se.style.display = st ? 'block' : 'none';
+  const pi = $('prevImg');
+  pi.innerHTML = img ? `<img src="${img}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'">` : '<i class="fas fa-image"></i>';
 }
 
-async function pollStatus(){
-  const d=await fetch('/api/status').then(r=>r.json());
-  const dot=$('connDot'),tag=$('connTag'),sub=$('connSub'),disc=$('disconnectBtn'),conn=$('connectBtn');
-  dot.className='dot '+(d.state==='connected'?'dot-g':d.state==='connecting'?'dot-y':d.state==='error'?'dot-r':'dot-gray');
-  tag.textContent=d.tag||(d.state==='error'?'Connection failed':'Not connected');
-  sub.textContent=d.state==='error'?(d.error||'Error'):d.state;
-  disc.style.display=d.state==='connected'?'inline-flex':'none';
-  conn.style.display=d.state==='connected'?'none':'inline-flex';
-}
-setInterval(pollStatus,5000);
-
-function livePreview(){
-  const type=gv('rpc_type'),name=gv('rpc_name')||'Onyx',det=gv('rpc_details'),st=gv('rpc_state'),img=gv('rpc_large_image');
-  $('prevType').textContent=type; $('prevName').textContent=name;
-  const de=$('prevDetails'),se=$('prevState');
-  de.textContent=det;de.style.display=det?'block':'none';
-  se.textContent=st;se.style.display=st?'block':'none';
-  const pi=$('prevImg');
-  pi.innerHTML=img?`<img src="${img}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'">`:'<i class="fas fa-image"></i>';
+function toggleStreamUrl() {
+  $('streamUrlField').style.display = gv('rpc_type') === 'STREAMING' ? 'block' : 'none';
 }
 
-function toggleStreamUrl(){
-  $('streamUrlField').style.display=gv('rpc_type')==='STREAMING'?'block':'none';
+function toast(msg, ok) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + (ok ? 'tok' : 'terr'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
 }
 
-// ── Quest Functions ───────────────────────────────────────────────────────────
+// ── Quests ──
 let questPollTimer = null;
 let lastLogCount = 0;
 let cachedQuests = [];
 
-async function loadQuests(){
-  const list=$('questList');
-  list.innerHTML='<div class="quest-empty"><i class="fas fa-spinner fa-spin"></i> Loading quests…</div>';
+async function loadQuests() {
+  const list = $('questList');
+  list.innerHTML = '<div class="quest-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
   try {
-    const d = await fetch('/api/quests').then(r=>r.json());
-    if (!d.success) { list.innerHTML=`<div class="quest-empty" style="color:var(--red)">${d.error||'Failed to load'}</div>`; return; }
-    cachedQuests = d.quests;
-    renderQuestList(d.quests);
-  } catch(e) {
-    list.innerHTML=`<div class="quest-empty" style="color:var(--red)">Error: ${e.message}</div>`;
-  }
+    const d = await fetch('/api/quests').then(r => r.json());
+    if (d.success) { cachedQuests = d.quests; renderQuestList(d.quests); }
+    else list.innerHTML = `<div class="quest-empty" style="color:var(--red)">${d.error}</div>`;
+  } catch (e) {}
 }
 
-function renderQuestList(quests){
-  const list=$('questList');
-  if(!quests||quests.length===0){
-    list.innerHTML='<div class="quest-empty">No quests available right now</div>'; return;
-  }
-  list.innerHTML = quests.map(q=>{
-    const taskBadge = q.type==='PLAY_ON_DESKTOP'
-      ? `<span class="badge badge-play"><i class="fas fa-gamepad"></i> Play</span>`
-      : `<span class="badge badge-video"><i class="fas fa-film"></i> Watch</span>`;
-    const statusBadge = q.completed
-      ? `<span class="badge badge-done"><i class="fas fa-check"></i> Done</span>`
-      : q.expired ? `<span class="badge badge-exp"><i class="fas fa-clock"></i> Expired</span>` : '';
-    const disabled = q.completed||q.expired;
-    const icon = q.appId
-      ? `<img src="https://cdn.discordapp.com/app-icons/${q.appId}/a_.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-gamepad\\'></i>'">`
-      : '<i class="fas fa-gamepad"></i>';
-    return `<div class="quest-item${disabled?' completed':''}" id="qi-${q.id}">
+function renderQuestList(quests) {
+  const list = $('questList');
+  if (!quests.length) { list.innerHTML = '<div class="quest-empty">No quests available</div>'; return; }
+  list.innerHTML = quests.map(q => {
+    const icon = q.appId ? `<img src="https://cdn.discordapp.com/app-icons/${q.appId}/a_.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-gamepad\\'></i>'">` : '<i class="fas fa-gamepad"></i>';
+    return `<div class="quest-item" id="qi-${q.id}">
       <div class="quest-icon">${icon}</div>
       <div class="quest-info">
-        <div class="quest-name">${escHtml(q.name)}</div>
-        <div class="quest-meta">${q.game?`<span><i class="fas fa-dice-d20"></i> ${escHtml(q.game)}</span>`:''}${taskBadge}${statusBadge}</div>
+        <div style="font-weight:700">${q.name}</div>
+        <div style="font-size:0.75rem; color:var(--text-dim)">${q.game || ''} • ${q.type}</div>
       </div>
-      ${!disabled?`<button class="btn btn-ghost btn-sm" onclick="startQuest('${q.id}')"><i class="fas fa-play"></i> Start</button>`:''}
+      ${!q.completed && !q.expired ? `<button class="btn btn-ghost btn-sm" onclick="startQuest('${q.id}')">Start</button>` : `<span class="tag">${q.completed ? 'Done' : 'Expired'}</span>`}
     </div>`;
   }).join('');
 }
 
-async function startAllQuests(){
-  const d = await fetch('/api/quests/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).then(r=>r.json());
-  if(!d.success){toast(d.error||'Failed to start',false);return;}
-  toast('Starting all quests one by one…',true);
+async function startQuest(questId) {
+  await fetch('/api/quests/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questId }) });
   startQuestPoll();
 }
 
-async function startQuest(questId){
-  const d = await fetch('/api/quests/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questId})}).then(r=>r.json());
-  if(!d.success){toast(d.error||'Failed to start',false);return;}
-  const q = cachedQuests.find(x=>x.id===questId);
-  toast(`Starting: ${q?.name||questId}`,true);
+async function startAllQuests() {
+  await fetch('/api/quests/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
   startQuestPoll();
 }
 
-async function stopQuests(){
-  await fetch('/api/quests/stop',{method:'POST'});
-  toast('Stopped.',true);
-}
+async function stopQuests() { await fetch('/api/quests/stop', { method: 'POST' }); }
+async function clearQuestLogs() { await fetch('/api/quests/clear-logs', { method: 'POST' }); $('questLog').innerHTML = ''; lastLogCount = 0; }
 
-async function clearQuestLogs(){
-  await fetch('/api/quests/clear-logs',{method:'POST'});
-  $('questLog').innerHTML='<span style="color:var(--text-muted)">Logs cleared.</span>';
-  lastLogCount=0;
-}
-
-function startQuestPoll(){
-  if(questPollTimer) return;
+function startQuestPoll() {
+  if (questPollTimer) return;
   questPollTimer = setInterval(pollQuestStatus, 1500);
-  pollQuestStatus();
 }
 
-async function pollQuestStatus(){
+async function pollQuestStatus() {
   try {
-    const d = await fetch('/api/quests/status').then(r=>r.json());
-    // Update banner
-    const banner=$('questBanner');
-    const bannerText=$('questBannerText');
-    if(d.isRunning){
-      banner.classList.add('active');
-      bannerText.textContent = d.currentQuest
-        ? `Running: ${d.currentQuest.name} — Discord shows "Playing ${d.currentQuest.name}"`
-        : 'Running quests…';
-      $('startAllBtn').style.display='none';
-      $('stopBtn').style.display='inline-flex';
-      // Highlight running quest
-      document.querySelectorAll('.quest-item').forEach(el=>el.classList.remove('running'));
-      if(d.currentQuest){
-        const el=$(`qi-${d.currentQuest.id}`);
-        if(el) el.classList.add('running');
-      }
+    const d = await fetch('/api/quests/status').then(r => r.json());
+    const banner = $('questBanner'), bText = $('questBannerText');
+    if (d.isRunning) {
+      banner.style.display = 'flex';
+      bText.textContent = d.currentQuest ? `Running: ${d.currentQuest.name}` : 'Running quests...';
+      $('startAllBtn').style.display = 'none'; $('stopBtn').style.display = 'inline-flex';
     } else {
-      banner.classList.remove('active');
-      $('startAllBtn').style.display='inline-flex';
-      $('stopBtn').style.display='none';
-      document.querySelectorAll('.quest-item').forEach(el=>el.classList.remove('running'));
-      if(questPollTimer){ clearInterval(questPollTimer); questPollTimer=null; }
+      banner.style.display = 'none';
+      $('startAllBtn').style.display = 'inline-flex'; $('stopBtn').style.display = 'none';
+      if (questPollTimer) { clearInterval(questPollTimer); questPollTimer = null; }
     }
-    // Append new logs
-    if(d.logs && d.logs.length > lastLogCount){
-      const logEl=$('questLog');
-      const newLines = d.logs.slice(lastLogCount);
-      lastLogCount = d.logs.length;
-      if(lastLogCount===0) logEl.innerHTML='';
-      newLines.forEach(line=>{
-        const div=document.createElement('div');
-        div.className='log-line'+(line.includes('COMPLETED')?' log-done':line.includes('Error')||line.includes('error')?' log-info':'');
-        div.textContent=line;
+    if (d.logs && d.logs.length > lastLogCount) {
+      const logEl = $('questLog');
+      d.logs.slice(lastLogCount).forEach(line => {
+        const div = document.createElement('div');
+        div.textContent = line;
         logEl.appendChild(div);
       });
-      logEl.scrollTop=logEl.scrollHeight;
+      lastLogCount = d.logs.length;
+      logEl.scrollTop = logEl.scrollHeight;
     }
-  } catch(e){}
+  } catch (e) {}
 }
 
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function toast(msg,ok){
-  const t=document.createElement('div');
-  t.className='toast '+(ok?'tok':'terr');t.textContent=msg;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+// ── Messages ──
+async function loadMessages() {
+  const d = await fetch('/api/messages').then(r => r.json());
+  renderList($('sch_list'), d.scheduled, deleteScheduled);
+  renderList($('rec_list'), d.recurring, deleteRecurring);
 }
 
-// ── Messaging (scheduled + recurring) ────────────────────────────────────────
-async function loadMessages(){
-  try {
-    const d = await fetch('/api/messages').then(r=>r.json());
-    renderScheduled(d.scheduled||[]);
-    renderRecurring(d.recurring||[]);
-  } catch(e){}
-}
-
-function renderScheduled(list){
-  const el=$('sch_list');
-  if(!list.length){el.innerHTML='<div class="empty">No scheduled messages</div>';return;}
-  el.innerHTML=list.map(e=>`
-    <div class="row-item">
-      <div class="ri-main">
-        <div><span class="tag">to ${escHtml(e.targetId)}</span> <strong>${escHtml(new Date(e.runAt).toLocaleString())}</strong></div>
-        <div class="ri-sub">${escHtml(e.message)}</div>
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="deleteScheduled('${e.id}')"><i class="fas fa-xmark"></i></button>
+function renderList(el, list, delFn) {
+  if (!list || !list.length) { el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted)">Empty</div>'; return; }
+  el.innerHTML = list.map(e => `<div class="row-item">
+    <div class="ri-main">
+      <div style="font-size:0.85rem"><span class="tag">${e.targetId}</span> ${e.runAt ? new Date(e.runAt).toLocaleString() : 'Every ' + e.intervalMin + 'm'}</div>
+      <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px">${e.message}</div>
     </div>
-  `).join('');
+    <button class="btn btn-danger btn-sm" onclick="${delFn.name}('${e.id}')"><i class="fas fa-trash"></i></button>
+  </div>`).join('');
 }
 
-function renderRecurring(list){
-  const el=$('rec_list');
-  if(!list.length){el.innerHTML='<div class="empty">No recurring messages</div>';return;}
-  el.innerHTML=list.map(e=>`
-    <div class="row-item">
-      <div class="ri-main">
-        <div><span class="tag">to ${escHtml(e.targetId)}</span> every <strong>${e.intervalMin}m</strong></div>
-        <div class="ri-sub">${escHtml(e.message)}</div>
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="deleteRecurring('${e.id}')"><i class="fas fa-xmark"></i></button>
-    </div>
-  `).join('');
+async function addScheduled() {
+  const targetId = gv('sch_target'), runAt = gv('sch_when'), message = gv('sch_msg');
+  if (!targetId || !runAt || !message) return toast('Fill all fields', false);
+  const d = await fetch('/api/messages/scheduled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, runAt, message }) }).then(r => r.json());
+  if (d.success) { toast('Scheduled!', true); loadMessages(); sv('sch_msg', ''); }
+  else toast(d.error, false);
 }
 
-async function addScheduled(){
-  const targetId=gv('sch_target'),runAt=gv('sch_when'),message=gv('sch_msg');
-  if(!targetId||!runAt||!message) return toast('Fill all fields',false);
-  const d=await fetch('/api/messages/scheduled',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,runAt,message})}).then(r=>r.json());
-  if(d.success){ toast('Scheduled!',true); loadMessages(); sv('sch_msg',''); }
-  else toast(d.error,false);
+async function addRecurring() {
+  const targetId = gv('rec_target'), intervalMin = parseInt(gv('rec_interval')), message = gv('rec_msg');
+  if (!targetId || !intervalMin || !message) return toast('Fill all fields', false);
+  const d = await fetch('/api/messages/recurring', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, intervalMin, message }) }).then(r => r.json());
+  if (d.success) { toast('Added!', true); loadMessages(); sv('rec_msg', ''); }
+  else toast(d.error, false);
 }
 
-async function addRecurring(){
-  const targetId=gv('rec_target'),intervalMin=parseInt(gv('rec_interval')),message=gv('rec_msg');
-  if(!targetId||!intervalMin||!message) return toast('Fill all fields',false);
-  const d=await fetch('/api/messages/recurring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,intervalMin,message})}).then(r=>r.json());
-  if(d.success){ toast('Added recurring!',true); loadMessages(); sv('rec_msg',''); }
-  else toast(d.error,false);
+async function deleteScheduled(id) { await fetch('/api/messages/scheduled/' + id, { method: 'DELETE' }); loadMessages(); }
+async function deleteRecurring(id) { await fetch('/api/messages/recurring/' + id, { method: 'DELETE' }); loadMessages(); }
+
+// ── Automation ──
+async function loadAuto() {
+  const d = await fetch('/api/auto').then(r => r.json());
+  if (d.success) {
+    sc('afk_enabled', d.config.afk?.enabled);
+    sv('afk_msg', d.config.afk?.message || '');
+    sc('react_enabled', d.config.autoReact?.enabled);
+    sc('reply_enabled', d.config.autoReply?.enabled);
+  }
+  ['afk_enabled', 'react_enabled', 'reply_enabled'].forEach(id => $(id).onchange = saveAuto);
+  $('afk_msg').onblur = saveAuto;
 }
 
-async function deleteScheduled(id){ await fetch('/api/messages/scheduled/'+id,{method:'DELETE'}); loadMessages(); }
-async function deleteRecurring(id){ await fetch('/api/messages/recurring/'+id,{method:'DELETE'}); loadMessages(); }
-
-// ── Automation ───────────────────────────────────────────────────────────────
-async function loadAuto(){
-  const d=await fetch('/api/auto').then(r=>r.json());
-  if(!d.success) return;
-  const c=d.config;
-  sc('afk_enabled',!!c.afk?.enabled);
-  sv('afk_msg',c.afk?.message||'');
-  sc('react_enabled',!!c.autoReact?.enabled);
-  sc('reply_enabled',!!c.autoReply?.enabled);
-}
-
-async function saveAuto(){
-  const body={
-    afk:{ enabled:gc('afk_enabled'), message:gv('afk_msg') },
-    autoReact:{ enabled:gc('react_enabled') },
-    autoReply:{ enabled:gc('reply_enabled') }
+async function saveAuto() {
+  const body = {
+    afk: { enabled: gc('afk_enabled'), message: gv('afk_msg') },
+    autoReact: { enabled: gc('react_enabled') },
+    autoReply: { enabled: gc('reply_enabled') }
   };
-  await fetch('/api/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  await fetch('/api/auto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 }
 
-// ── Utility ──────────────────────────────────────────────────────────────────
-async function runPurge(){
-  const channelId=gv('purge_channel'),count=parseInt(gv('purge_count'));
-  if(!channelId) return toast('Channel ID required',false);
-  const d=await fetch('/api/util/purge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channelId,count})}).then(r=>r.json());
-  if(d.success) toast(`Purged ${d.deleted} messages`,true);
-  else toast(d.error,false);
+// ── Utility ──
+async function runPurge() {
+  const channelId = gv('purge_channel'), count = parseInt(gv('purge_count'));
+  const d = await fetch('/api/util/purge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channelId, count }) }).then(r => r.json());
+  if (d.success) toast(`Purged ${d.deleted} messages`, true);
+  else toast(d.error, false);
 }
 
-async function runSend(){
-  const targetId=gv('send_target'),message=gv('send_msg');
-  if(!targetId||!message) return toast('Target and message required',false);
-  const d=await fetch('/api/util/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetId,message})}).then(r=>r.json());
-  if(d.success) toast('Sent!',true);
-  else toast(d.error,false);
+async function runSend() {
+  const targetId = gv('send_target'), message = gv('send_msg');
+  const d = await fetch('/api/util/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, message }) }).then(r => r.json());
+  if (d.success) toast('Sent!', true);
+  else toast(d.error, false);
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-window.onload=()=>{
-  loadForm();
-  // Auto-save automation toggles
-  ['afk_enabled','react_enabled','reply_enabled'].forEach(id=>{
-    $(id).onchange=saveAuto;
-  });
-  $('afk_msg').onblur=saveAuto;
-};
+window.onload = loadForm;
 </script>
 </body>
 </html>
