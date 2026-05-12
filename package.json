@@ -1,7 +1,7 @@
 {
   "name": "onyx-panel",
   "version": "1.3.0",
-  "description": "Onyx — Discord automation suite: RPC, quests, scheduled messages, auto-reply, and more.",
+  "description": "Onyx — Discord RPC & quest panel.",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {

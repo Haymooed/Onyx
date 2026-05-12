@@ -9,9 +9,6 @@ const path = require('path');
 const yaml = require('js-yaml');
 const { Client } = require('discord.js-selfbot-v13');
 const QuestManagerBridge = require('./quests/manager');
-const { MessageScheduler } = require('./automation/messages');
-const { AutoFeatures } = require('./automation/autoFeatures');
-const { purgeOwn, sendTo, massDm } = require('./automation/utility');
 
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
@@ -128,9 +125,6 @@ let configWatcher = null;
 let presenceStart = null;
 let questBridge = null;
 
-const messageScheduler = new MessageScheduler(() => discordClient);
-const autoFeatures = new AutoFeatures();
-
 function isHttpUrl(u) {
     return typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'));
 }
@@ -219,9 +213,6 @@ async function applyPresence() {
 }
 
 function stopClient() {
-    try { messageScheduler.stop(); } catch {}
-    try { autoFeatures.unbind(); } catch {}
-
     if (refreshInterval) {
         clearInterval(refreshInterval);
         refreshInterval = null;
@@ -264,9 +255,6 @@ async function connectClient(token) {
         console.log(`[RPC] Logged in as ${currentTag}`);
 
         await applyPresence();
-
-        try { messageScheduler.initialize(); } catch (e) { console.error('[Messages] init:', e.message); }
-        try { autoFeatures.bind(discordClient); } catch (e) { console.error('[Auto] bind:', e.message); }
 
         refreshInterval = setInterval(() => {
             applyPresence().catch(() => {});
@@ -392,118 +380,6 @@ app.post('/api/stop', (req, res) => {
 
     stopClient();
     res.json({ success: true });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Messaging — scheduled (one-time) and recurring (interval)
-// ─────────────────────────────────────────────────────────────────────────────
-function requireConnected(res) {
-    if (!discordClient || clientState !== 'connected') {
-        res.json({ success: false, error: 'Discord client not connected' });
-        return false;
-    }
-    return true;
-}
-
-app.get('/api/messages', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    res.json({ success: true, ...messageScheduler.list() });
-});
-
-app.post('/api/messages/scheduled', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    if (!requireConnected(res)) return;
-    try {
-        const entry = messageScheduler.addScheduled(req.body || {});
-        res.json({ success: true, entry });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-app.delete('/api/messages/scheduled/:id', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    messageScheduler.removeScheduled(req.params.id);
-    res.json({ success: true });
-});
-
-app.post('/api/messages/recurring', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    if (!requireConnected(res)) return;
-    try {
-        const entry = messageScheduler.addRecurring(req.body || {});
-        res.json({ success: true, entry });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-app.delete('/api/messages/recurring/:id', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    messageScheduler.removeRecurring(req.params.id);
-    res.json({ success: true });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Auto features (AFK / auto-react / auto-reply)
-// ─────────────────────────────────────────────────────────────────────────────
-app.get('/api/auto', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    res.json({ success: true, config: autoFeatures.config() });
-});
-
-app.post('/api/auto', (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    try {
-        const next = autoFeatures.update(req.body || {});
-        res.json({ success: true, config: next });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Utility — purge / dm / massdm
-// ─────────────────────────────────────────────────────────────────────────────
-app.post('/api/util/purge', async (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    if (!requireConnected(res)) return;
-    try {
-        const { channelId, count } = req.body || {};
-        if (!channelId) return res.json({ success: false, error: 'channelId required' });
-        const deleted = await purgeOwn(discordClient, channelId, count || 10);
-        res.json({ success: true, deleted });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-app.post('/api/util/send', async (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    if (!requireConnected(res)) return;
-    try {
-        const { targetId, message } = req.body || {};
-        if (!targetId || !message) return res.json({ success: false, error: 'targetId and message required' });
-        await sendTo(discordClient, targetId, message);
-        res.json({ success: true });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-app.post('/api/util/massdm', async (req, res) => {
-    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
-    if (!requireConnected(res)) return;
-    try {
-        const { ids, message, delayMs } = req.body || {};
-        if (!Array.isArray(ids) || ids.length === 0 || !message) {
-            return res.json({ success: false, error: 'ids[] and message required' });
-        }
-        const result = await massDm(discordClient, ids, message, Math.max(1000, parseInt(delayMs, 10) || 1500));
-        res.json({ success: true, ...result });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

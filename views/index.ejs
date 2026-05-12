@@ -248,9 +248,6 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
   <div class="nav-links">
     <div class="nav-item active" onclick="showSection('presence')"><i class="fas fa-id-card"></i> <span>Presence</span></div>
     <div class="nav-item" onclick="showSection('quests')"><i class="fas fa-khanda"></i> <span>Quests</span></div>
-    <div class="nav-item" onclick="showSection('automation')"><i class="fas fa-robot"></i> <span>Automation</span></div>
-    <div class="nav-item" onclick="showSection('messages')"><i class="fas fa-paper-plane"></i> <span>Messages</span></div>
-    <div class="nav-item" onclick="showSection('utility')"><i class="fas fa-tools"></i> <span>Utility</span></div>
   </div>
   <div class="sidebar-footer">
     <a href="/login" class="nav-item" style="color: var(--red)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
@@ -445,82 +442,6 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
     </div>
   </div>
 
-  <!-- Automation Section -->
-  <div id="automation" class="section">
-    <div class="header"><h2>Automation Features</h2></div>
-    <div class="grid">
-      <div class="card">
-        <div class="card-title"><i class="fas fa-moon"></i> AFK Mode</div>
-        <div class="toggle-row">
-          <div><strong>Enable AFK</strong><small style="display:block;color:var(--text-dim)">Auto-reply to DMs when active</small></div>
-          <label class="switch"><input type="checkbox" id="afk_enabled"><span class="slider"></span></label>
-        </div>
-        <div class="field" style="margin-top:15px">
-          <label>AFK Message</label>
-          <textarea id="afk_msg" placeholder="I am currently AFK..."></textarea>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="fas fa-bolt"></i> Auto-Features</div>
-        <div class="toggle-row">
-          <div><strong>Auto-React</strong><small style="display:block;color:var(--text-dim)">React to messages in specific channels</small></div>
-          <label class="switch"><input type="checkbox" id="react_enabled"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><strong>Auto-Reply</strong><small style="display:block;color:var(--text-dim)">Reply to keywords automatically</small></div>
-          <label class="switch"><input type="checkbox" id="reply_enabled"><span class="slider"></span></label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Messages Section -->
-  <div id="messages" class="section">
-    <div class="header"><h2>Message Scheduler</h2></div>
-    <div class="grid">
-      <div class="card">
-        <div class="card-title"><i class="fas fa-clock"></i> Schedule One-Time</div>
-        <div class="field"><label>Target ID (Channel/User)</label><input type="text" id="sch_target"></div>
-        <div class="field"><label>Run At</label><input type="datetime-local" id="sch_when"></div>
-        <div class="field"><label>Message Content</label><textarea id="sch_msg"></textarea></div>
-        <button class="btn btn-primary" onclick="addScheduled()">Schedule Message</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="fas fa-redo"></i> Recurring Messages</div>
-        <div class="field"><label>Target ID</label><input type="text" id="rec_target"></div>
-        <div class="field"><label>Interval (Minutes)</label><input type="number" id="rec_interval" value="60"></div>
-        <div class="field"><label>Message Content</label><textarea id="rec_msg"></textarea></div>
-        <button class="btn btn-primary" onclick="addRecurring()">Add Recurring</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="fas fa-list"></i> Scheduled Queue</div>
-        <div id="sch_list" class="row-list"></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="fas fa-list"></i> Recurring Queue</div>
-        <div id="rec_list" class="row-list"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Utility Section -->
-  <div id="utility" class="section">
-    <div class="header"><h2>Utility Tools</h2></div>
-    <div class="grid">
-      <div class="card">
-        <div class="card-title"><i class="fas fa-trash"></i> Message Purge</div>
-        <div class="field"><label>Channel ID</label><input type="text" id="purge_channel"></div>
-        <div class="field"><label>Count</label><input type="number" id="purge_count" value="100"></div>
-        <button class="btn btn-danger" onclick="runPurge()">Purge My Messages</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><i class="fas fa-paper-plane"></i> Quick Send</div>
-        <div class="field"><label>Target ID</label><input type="text" id="send_target"></div>
-        <div class="field"><label>Message</label><textarea id="send_msg"></textarea></div>
-        <button class="btn btn-primary" onclick="runSend()">Send Now</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div id="saveBar" class="save-bar">
@@ -546,8 +467,6 @@ function showSection(id) {
   $(id).classList.add('active');
   event.currentTarget.classList.add('active');
   if(id === 'quests') loadQuests();
-  if(id === 'messages') loadMessages();
-  if(id === 'automation') loadAuto();
 }
 
 function markDirty() {
@@ -756,80 +675,6 @@ async function pollQuestStatus() {
       logEl.scrollTop = logEl.scrollHeight;
     }
   } catch (e) {}
-}
-
-// ── Messages ──
-async function loadMessages() {
-  const d = await fetch('/api/messages').then(r => r.json());
-  renderList($('sch_list'), d.scheduled, deleteScheduled);
-  renderList($('rec_list'), d.recurring, deleteRecurring);
-}
-
-function renderList(el, list, delFn) {
-  if (!list || !list.length) { el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted)">Empty</div>'; return; }
-  el.innerHTML = list.map(e => `<div class="row-item">
-    <div class="ri-main">
-      <div style="font-size:0.85rem"><span class="tag">${e.targetId}</span> ${e.runAt ? new Date(e.runAt).toLocaleString() : 'Every ' + e.intervalMin + 'm'}</div>
-      <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px">${e.message}</div>
-    </div>
-    <button class="btn btn-danger btn-sm" onclick="${delFn.name}('${e.id}')"><i class="fas fa-trash"></i></button>
-  </div>`).join('');
-}
-
-async function addScheduled() {
-  const targetId = gv('sch_target'), runAt = gv('sch_when'), message = gv('sch_msg');
-  if (!targetId || !runAt || !message) return toast('Fill all fields', false);
-  const d = await fetch('/api/messages/scheduled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, runAt, message }) }).then(r => r.json());
-  if (d.success) { toast('Scheduled!', true); loadMessages(); sv('sch_msg', ''); }
-  else toast(d.error, false);
-}
-
-async function addRecurring() {
-  const targetId = gv('rec_target'), intervalMin = parseInt(gv('rec_interval')), message = gv('rec_msg');
-  if (!targetId || !intervalMin || !message) return toast('Fill all fields', false);
-  const d = await fetch('/api/messages/recurring', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, intervalMin, message }) }).then(r => r.json());
-  if (d.success) { toast('Added!', true); loadMessages(); sv('rec_msg', ''); }
-  else toast(d.error, false);
-}
-
-async function deleteScheduled(id) { await fetch('/api/messages/scheduled/' + id, { method: 'DELETE' }); loadMessages(); }
-async function deleteRecurring(id) { await fetch('/api/messages/recurring/' + id, { method: 'DELETE' }); loadMessages(); }
-
-// ── Automation ──
-async function loadAuto() {
-  const d = await fetch('/api/auto').then(r => r.json());
-  if (d.success) {
-    sc('afk_enabled', d.config.afk?.enabled);
-    sv('afk_msg', d.config.afk?.message || '');
-    sc('react_enabled', d.config.autoReact?.enabled);
-    sc('reply_enabled', d.config.autoReply?.enabled);
-  }
-  ['afk_enabled', 'react_enabled', 'reply_enabled'].forEach(id => $(id).onchange = saveAuto);
-  $('afk_msg').onblur = saveAuto;
-}
-
-async function saveAuto() {
-  const body = {
-    afk: { enabled: gc('afk_enabled'), message: gv('afk_msg') },
-    autoReact: { enabled: gc('react_enabled') },
-    autoReply: { enabled: gc('reply_enabled') }
-  };
-  await fetch('/api/auto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-}
-
-// ── Utility ──
-async function runPurge() {
-  const channelId = gv('purge_channel'), count = parseInt(gv('purge_count'));
-  const d = await fetch('/api/util/purge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channelId, count }) }).then(r => r.json());
-  if (d.success) toast(`Purged ${d.deleted} messages`, true);
-  else toast(d.error, false);
-}
-
-async function runSend() {
-  const targetId = gv('send_target'), message = gv('send_msg');
-  const d = await fetch('/api/util/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, message }) }).then(r => r.json());
-  if (d.success) toast('Sent!', true);
-  else toast(d.error, false);
 }
 
 window.onload = loadForm;
