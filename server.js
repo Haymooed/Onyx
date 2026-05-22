@@ -218,6 +218,21 @@ async function applyPresence() {
     }
 }
 
+async function applyGameSpoof(appId, appName) {
+    if (!discordClient || clientState !== 'connected') return;
+    try {
+        const cfg = loadConfig();
+        const spoofedCfg = {
+            ...cfg,
+            rpc: { ...cfg.rpc, enabled: true, type: 'PLAYING', name: appName, application_id: appId }
+        };
+        await discordClient.user.setPresence(buildPresence(spoofedCfg));
+        console.log(`[RPC] Game spoofed: ${appName} (${appId})`);
+    } catch (e) {
+        console.error('[RPC] Game spoof error:', e.message);
+    }
+}
+
 function stopClient() {
     try { messageScheduler.stop(); } catch {}
     try { autoFeatures.unbind(); } catch {}
@@ -300,6 +315,13 @@ function getQuestBridge() {
     const cfg = loadConfig();
     const token = (cfg.token || '').trim().replace(/^["']|["']$/g, '');
     questBridge = new QuestManagerBridge(token);
+    questBridge.setGameSpoofCallback(async (appId, appName) => {
+        if (appId && appName) {
+            await applyGameSpoof(appId, appName);
+        } else {
+            await applyPresence();
+        }
+    });
     return questBridge;
 }
 

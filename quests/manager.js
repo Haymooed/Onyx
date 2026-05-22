@@ -13,6 +13,8 @@ class QuestManagerBridge {
         this.activeManager = null;
         this.isRunning = false;
         this.currentQuestInfo = null;
+        this.gameSpoofCallback = null;
+        this._activePlayQuests = 0;
     }
 
     get activeQuests() { return new Map(); }
@@ -39,6 +41,29 @@ class QuestManagerBridge {
     clearLogs() {
         this.globalLogs = [];
         this.log('system', 'Logs cleared.');
+    }
+
+    setGameSpoofCallback(fn) {
+        this.gameSpoofCallback = fn;
+    }
+
+    _isPlayQuest(q) {
+        const cfg = q.config.task_config || q.config.task_config_v2;
+        return !!(cfg?.tasks && 'PLAY_ON_DESKTOP' in cfg.tasks);
+    }
+
+    async _startPlaySpoof(appId, appName) {
+        this._activePlayQuests++;
+        if (this.gameSpoofCallback) {
+            await this.gameSpoofCallback(appId, appName).catch(() => {});
+        }
+    }
+
+    async _endPlaySpoof() {
+        this._activePlayQuests = Math.max(0, this._activePlayQuests - 1);
+        if (this._activePlayQuests === 0 && this.gameSpoofCallback) {
+            await this.gameSpoofCallback(null, null).catch(() => {});
+        }
     }
 
     // Fetch available quests — returns array of { id, name, game, appId, type, completed, expired }
@@ -90,13 +115,19 @@ class QuestManagerBridge {
                 const appId = q.config.application?.id || null;
                 this.currentQuestInfo = { id: q.id, name: appName, appId };
 
+                const isPlay = this._isPlayQuest(q);
+
                 await new Promise(r => setTimeout(r, Math.random() * 5000));
+
+                if (isPlay && appId) await this._startPlaySpoof(appId, appName);
                 try {
                     await manager.doingQuest(q);
                 } catch (e) {
                     if (e.message !== 'Stopped') {
                         this.log(q.id, `Error: ${e.message}`);
                     }
+                } finally {
+                    if (isPlay && appId) await this._endPlaySpoof();
                 }
             });
 
@@ -134,9 +165,17 @@ class QuestManagerBridge {
             const appId = quest.config.application?.id || null;
             this.currentQuestInfo = { id: quest.id, name: appName, appId };
 
+            const isPlay = this._isPlayQuest(quest);
+
             await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
-            await manager.doingQuest(quest);
-            this.log('system', 'Quest finished.');
+
+            if (isPlay && appId) await this._startPlaySpoof(appId, appName);
+            try {
+                await manager.doingQuest(quest);
+                this.log('system', 'Quest finished.');
+            } finally {
+                if (isPlay && appId) await this._endPlaySpoof();
+            }
         } catch (error) {
             if (error.message !== 'Stopped') {
                 this.log('system', `Error: ${error.message}`);
