@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Onyx — Key Portal</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--card:#1c2130;--border:rgba(255,255,255,.07);--primary:#06b6d4;--grad:linear-gradient(135deg,#06b6d4,#6366f1);--text:#e6edf3;--text-2:#8b949e;--red:#f85149;--green:#3fb950;--yellow:#d29922}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;background-image:radial-gradient(ellipse at 30% 40%,rgba(6,182,212,.06) 0%,transparent 55%),radial-gradient(ellipse at 75% 70%,rgba(99,102,241,.05) 0%,transparent 50%)}
+.wrap{width:100%;max-width:440px;padding:20px;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:36px 32px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:28px;gap:10px}
+.logo-icon{width:46px;height:46px;background:var(--grad);border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(6,182,212,.25)}
+.logo-icon svg{width:22px;height:22px;fill:#fff}
+.logo-name{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.logo-sub{font-size:13px;color:var(--text-2);text-align:center}
+.field{margin-bottom:16px}
+label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 13px;outline:none;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+input:focus{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 3px rgba(6,182,212,.08)}
+input::placeholder{color:#3d444d}
+.btn{width:100%;padding:11px;border:none;border-radius:8px;background:var(--grad);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 2px 14px rgba(6,182,212,.2)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(6,182,212,.3)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.err{display:none;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:8px;color:var(--red);font-size:13px;padding:10px 13px;margin-bottom:14px;text-align:center}
+.result{display:none;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:16px;margin-bottom:14px}
+.result-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);margin-bottom:8px}
+.key-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary);word-break:break-all;cursor:pointer;position:relative;transition:border-color .15s}
+.key-box:hover{border-color:rgba(6,182,212,.35)}
+.key-box::after{content:'Click to copy';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-2);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.04em}
+.key-box.copied{border-color:rgba(63,185,80,.4);color:var(--green)}
+.key-meta{margin-top:8px;font-size:12px;color:var(--text-2);display:flex;gap:14px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--text-2);text-align:center;margin-top:14px;line-height:1.7}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.tier-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(6,182,212,.12);color:#22d3ee}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm0 2.18l7 3.12V11c0 4.52-3.05 8.78-7 10.01C8.05 19.78 5 15.52 5 11V6.3l7-3.12z"/></svg></div>
+      <div class="logo-name">Onyx</div>
+      <div class="logo-sub">Customer Key Portal</div>
+    </div>
+
+    <div id="err" class="err"></div>
+    <div id="result" class="result">
+      <div class="result-title">Your Current Key</div>
+      <div class="key-box" id="keyDisplay" onclick="copyKey()"></div>
+      <div class="key-meta">
+        <span id="tierDisplay"></span>
+        <span id="expiryDisplay"></span>
+      </div>
+    </div>
+
+    <form onsubmit="lookupKey(event)" id="lookupForm">
+      <div class="field">
+        <label>Discord User ID</label>
+        <input type="text" id="discordId" placeholder="123456789012345678" autocomplete="off" required pattern="\d{15,20}" title="Enter your numeric Discord User ID">
+      </div>
+      <div class="field">
+        <label>Portal PIN</label>
+        <input type="text" id="portalPin" placeholder="ABC123" autocomplete="off" required maxlength="8" style="font-family:'JetBrains Mono',monospace;letter-spacing:.1em">
+      </div>
+      <button class="btn" type="submit" id="lookupBtn">Get My Key</button>
+    </form>
+
+    <div class="divider"></div>
+    <div class="hint">
+      Your Discord ID and PIN were given to you when you purchased.<br>
+      Keys refresh every 24 hours — activate at <strong style="color:var(--primary)">/activate</strong> in your panel.
+    </div>
+  </div>
+</div>
+
+<script>
+let currentKey = null;
+
+document.getElementById('portalPin').addEventListener('input', function() {
+  this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+});
+
+async function lookupKey(e) {
+  e.preventDefault();
+  const btn = document.getElementById('lookupBtn');
+  const errEl = document.getElementById('err');
+  const resEl = document.getElementById('result');
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+  btn.textContent = 'Looking up…';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/portal/key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        discordId: document.getElementById('discordId').value.trim(),
+        portalPin: document.getElementById('portalPin').value.trim()
+      })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      currentKey = d.key;
+      document.getElementById('keyDisplay').textContent = d.key;
+      document.getElementById('tierDisplay').innerHTML = `<span class="tier-badge">${d.tier || 'Subscription'}</span>`;
+      const exp = d.expiresAt ? new Date(d.expiresAt) : null;
+      document.getElementById('expiryDisplay').textContent = exp ? `Expires ${exp.toDateString()}` : 'Lifetime';
+      resEl.style.display = 'block';
+      document.getElementById('lookupForm').style.display = 'none';
+    } else {
+      errEl.textContent = d.error || 'Lookup failed';
+      errEl.style.display = 'block';
+      btn.textContent = 'Get My Key';
+      btn.disabled = false;
+    }
+  } catch {
+    errEl.textContent = 'Connection error — try again';
+    errEl.style.display = 'block';
+    btn.textContent = 'Get My Key';
+    btn.disabled = false;
+  }
+}
+
+function copyKey() {
+  if (!currentKey) return;
+  navigator.clipboard.writeText(currentKey).then(() => {
+    const box = document.getElementById('keyDisplay');
+    box.classList.add('copied');
+    box.textContent = '✓ Copied to clipboard!';
+    setTimeout(() => { box.classList.remove('copied'); box.textContent = currentKey; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
