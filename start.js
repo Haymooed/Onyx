@@ -42,6 +42,8 @@ if (!fs.existsSync(path.join(WORK_DIR, '.git'))) {
 // Only run npm install if package.json changed or node_modules is missing
 const nodeModulesExist = fs.existsSync(path.join(WORK_DIR, 'node_modules'));
 if (!nodeModulesExist) {
+    console.log("Clearing npm cache to free disk space...");
+    run(`npm cache clean --force`, { optional: true, silent: true });
     console.log("Installing missing dependencies...");
     run(`npm install --no-package-lock --omit=optional --legacy-peer-deps`);
 } else {
