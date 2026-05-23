@@ -39,19 +39,33 @@ if (!fs.existsSync(path.join(WORK_DIR, '.git'))) {
 }
 
 // 2. Optimized Dependency Install
-// Only run npm install if package.json changed or node_modules is missing
+const NPM_FLAGS = [
+    '--no-package-lock',
+    '--omit=optional',
+    '--legacy-peer-deps',
+    '--ignore-scripts',   // skip native binary compilation (voice/audio not used)
+    '--no-fund',
+    '--no-audit',
+    `--cache /tmp/npm-cache-${process.pid}`, // isolate cache so it doesn't bloat disk
+].join(' ');
+
+const CACHE_DIR = `/tmp/npm-cache-${process.pid}`;
+
+function cleanCache() {
+    run(`rm -rf ${CACHE_DIR}`, { optional: true, silent: true });
+}
+
 const nodeModulesExist = fs.existsSync(path.join(WORK_DIR, 'node_modules'));
 if (!nodeModulesExist) {
-    console.log("Clearing npm cache to free disk space...");
+    // Wipe any stale global npm cache first
     run(`npm cache clean --force`, { optional: true, silent: true });
-    console.log("Installing missing dependencies...");
-    run(`npm install --no-package-lock --omit=optional --legacy-peer-deps`);
+    console.log("Installing dependencies...");
+    run(`npm install ${NPM_FLAGS}`);
+    cleanCache();
 } else {
-    // Optional: check if package.json was updated in the last git pull
-    // For simplicity and speed, we can skip if node_modules exists, 
-    // or run a quick install which npm handles efficiently anyway.
     console.log("Verifying dependencies...");
-    run(`npm install --no-package-lock --omit=optional --legacy-peer-deps --prefer-offline --no-audit`, { silent: true });
+    run(`npm install ${NPM_FLAGS} --prefer-offline`, { silent: true });
+    cleanCache();
 }
 
 // 3. Start the server
