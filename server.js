@@ -16,6 +16,8 @@ const { MessageScheduler } = require('./automation/messages');
 const { AutoFeatures } = require('./automation/autoFeatures');
 const { purgeOwn, sendTo, massDm } = require('./automation/utility');
 const { validateKey } = require('./lib/license');
+const { listCustomers, getCustomer, getCustomerByDiscordId, addCustomer, updateCustomer, deleteCustomer } = require('./lib/customers');
+const { resetAllSubscriberKeys, scheduleDaily, stopSchedule, getLastReset, saveLastReset } = require('./lib/keyReset');
 
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
@@ -383,6 +385,7 @@ function resetActivityTime() {
 function stopClient() {
     stopPresenceRotation();
     stopIdleSpoofTimer();
+    try { stopSchedule(); } catch {}
     try { messageScheduler.stop(); } catch {}
     try { autoFeatures.unbind(); } catch {}
 
@@ -446,6 +449,8 @@ async function connectClient(token) {
                 startIdleSpoofTimer((settings.idleSpoof.timeoutMinutes || 10) * 60000);
             }
         } catch (e) { console.error('[Settings] startup:', e.message); }
+
+        try { scheduleDaily(discordClient); } catch (e) { console.error('[KeyReset] Schedule error:', e.message); }
 
         refreshInterval = setInterval(() => {
             applyPresence().catch(() => {});
@@ -583,7 +588,8 @@ app.post('/api/license/deactivate', (req, res) => {
 app.use((req, res, next) => {
     if (isVercel || !process.env.LICENSE_SECRET) return next();
     const skip = req.path === '/activate' || req.path === '/api/activate' ||
-                 req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public');
+                 req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public') ||
+                 req.path === '/portal' || req.path.startsWith('/api/portal');
     if (skip) return next();
     if (!isLicensed()) return res.redirect('/activate');
     next();
@@ -605,7 +611,8 @@ app.post('/api/login', (req, res) => {
 });
 
 app.use((req, res, next) => {
-    if (isVercel || req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public')) return next();
+    if (isVercel || req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public') ||
+        req.path === '/portal' || req.path.startsWith('/api/portal')) return next();
     const auth = req.cookies.auth;
     if (auth === getPanelPass()) return next();
     res.redirect('/login');
@@ -1155,6 +1162,97 @@ app.post('/api/restore', async (req, res) => {
         if (data.autoFeatures) { autoFeatures.update(data.autoFeatures); restored.push('automation'); }
         if (restored.includes('config') && clientState === 'connected') await applyPresence();
         res.json({ success: true, restored });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer admin
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/admin/customers', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const customers = await listCustomers();
+        res.json({ success: true, customers, lastReset: getLastReset() || null });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.post('/api/admin/customers', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const { discordId, discordTag, tier, portalPin } = req.body || {};
+        if (!discordId) return res.json({ success: false, error: 'discordId required' });
+        const customer = await addCustomer({ discordId, discordTag, tier, portalPin });
+        res.json({ success: true, customer });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.patch('/api/admin/customers/:id', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const allowed = ['active', 'discordTag', 'tier', 'portalPin'];
+        const updates = {};
+        for (const key of allowed) { if (req.body[key] !== undefined) updates[key] = req.body[key]; }
+        const customer = await updateCustomer(req.params.id, updates);
+        res.json({ success: true, customer });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.delete('/api/admin/customers/:id', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        await deleteCustomer(req.params.id);
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.post('/api/admin/customers/:id/dm-key', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    try {
+        const customer = await getCustomer(req.params.id);
+        if (!customer) return res.json({ success: false, error: 'Customer not found' });
+        if (!customer.currentKey) return res.json({ success: false, error: 'No key assigned yet — reset keys first' });
+        const user = await discordClient.users.fetch(customer.discordId);
+        const dm = await user.createDM();
+        const expStr = customer.keyExpiresAt ? new Date(customer.keyExpiresAt).toDateString() : 'Never';
+        await dm.send(
+            `🔑 **Your Onyx key!**\n\`\`\`\n${customer.currentKey}\n\`\`\`` +
+            `\n⏰ Valid until: **${expStr}**\n\nActivate at your panel → \`/activate\``
+        );
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+app.post('/api/admin/keys/reset', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const result = await resetAllSubscriberKeys(discordClient);
+        if (result.count > 0 || result.total > 0) saveLastReset();
+        res.json({ success: true, ...result });
+    } catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer portal (public — no auth)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/portal', (req, res) => {
+    res.render('portal');
+});
+
+app.post('/api/portal/key', async (req, res) => {
+    try {
+        const { discordId, portalPin } = req.body || {};
+        if (!discordId || !portalPin) return res.json({ success: false, error: 'Discord ID and PIN required' });
+        const customer = await getCustomerByDiscordId(discordId.trim());
+        if (!customer) return res.json({ success: false, error: 'Customer not found — check your Discord ID' });
+        if (customer.portalPin !== portalPin.trim().toUpperCase()) return res.json({ success: false, error: 'Invalid PIN' });
+        if (!customer.active) return res.json({ success: false, error: 'Your subscription is not active' });
+        if (!customer.currentKey) return res.json({ success: false, error: 'No key assigned yet — contact your seller' });
+        const expiry = customer.keyExpiresAt ? new Date(customer.keyExpiresAt) : null;
+        if (expiry && Date.now() > expiry.getTime()) {
+            return res.json({ success: false, error: 'Your key has expired — wait for the next daily reset' });
+        }
+        res.json({ success: true, key: customer.currentKey, tier: customer.tier, expiresAt: customer.keyExpiresAt });
     } catch (e) { res.json({ success: false, error: e.message }); }
 });
 

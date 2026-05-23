@@ -12,532 +12,301 @@
 <!-- LINKVERTISE SCRIPT END -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#0f0b12;
-  --surface:#1a1420;
-  --card:#241c2c;
-  --card2:#2d2436;
-  --border:rgba(255,105,180,.15);
-  --border2:rgba(255,105,180,.3);
-  --accent:#ff69b4;
-  --accent2:#ff1493;
-  --purple:#ff69b4;
-  --glow:rgba(255,105,180,.3);
-  --glow2:rgba(255,20,147,.2);
-  --text:#f8e8f0;
-  --muted:#b09eb0;
-  --dim:#6e5e6e;
+  --bg:#0d1117;
+  --surface:#161b22;
+  --card:#1c2130;
+  --card2:#21262d;
+  --border:rgba(255,255,255,.07);
+  --border2:rgba(6,182,212,.25);
+  --primary:#06b6d4;
+  --primary2:#22d3ee;
+  --grad:linear-gradient(135deg,#06b6d4,#6366f1);
+  --glow:rgba(6,182,212,.25);
+  --glow2:rgba(99,102,241,.2);
+  --text:#e6edf3;
+  --muted:#8b949e;
+  --dim:#3d444d;
 }
 
-html{
-  scroll-behavior:smooth;
-}
+html{scroll-behavior:smooth}
 
 body{
   background:var(--bg);
   color:var(--text);
-  font-family:'Space Grotesk',sans-serif;
+  font-family:'Inter',sans-serif;
   min-height:100vh;
   overflow-x:hidden;
 }
 
-/* BACKGROUND */
 #bg-canvas{
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  opacity:.5;
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45;
 }
 
-/* NAVIGATION */
+/* ─── NAV ─── */
 nav{
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  z-index:100;
-  padding:18px 40px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:rgba(3,4,10,.8);
-  backdrop-filter:blur(20px);
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 40px;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(13,17,23,.85);backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
 }
-
-.logo{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  text-decoration:none;
-}
-
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none}
 .logo-mark{
-  width:38px;
-  height:38px;
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 0 20px var(--glow);
-  flex-shrink:0;
+  width:36px;height:36px;background:var(--grad);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px var(--glow);flex-shrink:0;
 }
-
-.logo-mark svg{
-  width:20px;
-  height:20px;
-  fill:#fff;
-}
-
-.logo span{
-  font-size:1.25rem;
-  font-weight:800;
-  color:#fff;
-  letter-spacing:-.03em;
-}
-
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:32px;
-}
-
+.logo-mark svg{width:18px;height:18px;fill:#fff}
+.logo span{font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:-.03em}
+.nav-links{display:flex;align-items:center;gap:28px}
 .nav-links a{
-  color:var(--muted);
-  text-decoration:none;
-  font-size:.88rem;
-  font-weight:600;
-  letter-spacing:.02em;
-  transition:.2s;
+  color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:600;
+  letter-spacing:.01em;transition:.18s;
 }
-
-.nav-links a:hover{
-  color:var(--accent);
-}
-
+.nav-links a:hover{color:var(--text)}
 .nav-cta{
-  padding:10px 22px;
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  color:#fff !important;
-  border-radius:8px;
-  font-weight:700 !important;
-  box-shadow:0 0 20px var(--glow);
-  transition:.2s !important;
-  font-size:.85rem !important;
+  padding:9px 20px;background:var(--grad);color:#fff!important;border-radius:8px;
+  font-weight:700!important;box-shadow:0 0 18px var(--glow);transition:all .18s!important;
 }
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 24px var(--glow)!important}
 
-.nav-cta:hover{
-  transform:translateY(-1px);
-  box-shadow:0 0 30px var(--glow) !important;
-}
-
-/* HERO */
+/* ─── HERO ─── */
 .hero{
-  position:relative;
-  z-index:1;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:120px 24px 80px;
+  position:relative;z-index:1;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;
 }
-
 .hero-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:7px 16px;
-  background:rgba(255,105,180,.06);
-  border:1px solid rgba(255,105,180,.2);
-  border-radius:99px;
-  font-size:.75rem;
-  font-weight:600;
-  letter-spacing:.1em;
-  color:var(--accent);
-  text-transform:uppercase;
-  margin-bottom:32px;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;background:rgba(6,182,212,.07);
+  border:1px solid rgba(6,182,212,.2);border-radius:99px;
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;
+  color:var(--primary);text-transform:uppercase;margin-bottom:28px;
 }
-
-.hero-badge span{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:var(--accent);
+.hero-badge-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--primary);
   animation:pulse 2s ease-in-out infinite;
 }
-
-@keyframes pulse{
-  0%,100%{
-    box-shadow:0 0 0 0 rgba(255,105,180,.6);
-  }
-  50%{
-    box-shadow:0 0 0 6px rgba(255,105,180,0);
-  }
-}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,182,212,.6)}50%{box-shadow:0 0 0 6px rgba(6,182,212,0)}}
 
 h1{
-  font-size:clamp(2.6rem,6vw,5rem);
-  font-weight:800;
-  line-height:1.05;
-  letter-spacing:-.04em;
-  color:#fff;
-  max-width:860px;
-  margin-bottom:24px;
+  font-size:clamp(2.4rem,5.5vw,4.6rem);font-weight:800;
+  line-height:1.06;letter-spacing:-.04em;color:#fff;
+  max-width:860px;margin-bottom:22px;
 }
-
 h1 .grad{
-  background:linear-gradient(90deg,var(--accent),var(--accent2),var(--purple));
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
+  background:var(--grad);-webkit-background-clip:text;
+  background-clip:text;-webkit-text-fill-color:transparent;
 }
-
 .hero-sub{
-  font-size:1.1rem;
-  color:var(--muted);
-  max-width:560px;
-  margin:0 auto 48px;
-  line-height:1.7;
-  font-weight:400;
+  font-size:1.05rem;color:var(--muted);max-width:540px;
+  margin:0 auto 44px;line-height:1.75;font-weight:400;
 }
-
-.hero-btns{
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:14px 28px;
-  border-radius:10px;
-  font-family:'Space Grotesk',sans-serif;
-  font-size:.92rem;
-  font-weight:700;
-  cursor:pointer;
-  border:none;
-  text-decoration:none;
-  transition:.25s;
-  letter-spacing:.01em;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:13px 26px;border-radius:9px;font-family:'Inter',sans-serif;
+  font-size:.88rem;font-weight:700;cursor:pointer;border:none;
+  text-decoration:none;transition:.22s;letter-spacing:.01em;
 }
-
-.btn-primary{
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  color:#fff;
-  box-shadow:0 4px 24px var(--glow);
-}
-
-.btn-primary:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 32px var(--glow2);
-}
-
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 4px 20px var(--glow)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--glow)}
 .btn-ghost{
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border2);
-  color:var(--text);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);
 }
+.btn-ghost:hover{background:rgba(6,182,212,.06);border-color:var(--border2);color:#fff}
 
-.btn-ghost:hover{
-  background:rgba(255,105,180,.06);
-  border-color:rgba(255,105,180,.35);
-  color:#fff;
-}
-
-/* TERMINAL */
+/* ─── TERMINAL ─── */
 .terminal{
-  position:relative;
-  z-index:1;
-  max-width:680px;
-  margin:64px auto 0;
-  background:rgba(7,9,15,.9);
-  border:1px solid var(--border2);
-  border-radius:14px;
-  overflow:hidden;
-  box-shadow:0 0 60px rgba(255,105,180,.08),0 40px 80px rgba(0,0,0,.5);
+  position:relative;z-index:1;max-width:660px;margin:60px auto 0;
+  background:rgba(1,4,9,.9);border:1px solid var(--border2);
+  border-radius:13px;overflow:hidden;
+  box-shadow:0 0 60px rgba(6,182,212,.07),0 40px 80px rgba(0,0,0,.5);
 }
-
 .term-bar{
-  padding:12px 18px;
-  background:rgba(255,255,255,.03);
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  gap:8px;
+  padding:11px 16px;background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;
 }
-
-.term-dot{
-  width:12px;
-  height:12px;
-  border-radius:50%;
-}
-
-.td-r{background:#ff5f57}
-.td-y{background:#febc2e}
-.td-g{background:#28c840}
-
-.term-title{
-  margin-left:auto;
-  margin-right:auto;
-  font-size:.72rem;
-  color:var(--muted);
-  font-family:'DM Mono',monospace;
-}
-
+.term-dot{width:11px;height:11px;border-radius:50%}
+.td-r{background:#ff5f57}.td-y{background:#febc2e}.td-g{background:#28c840}
+.term-title{margin:0 auto;font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
 .term-body{
-  padding:24px 28px;
-  font-family:'DM Mono',monospace;
-  font-size:.82rem;
-  line-height:1.9;
-  text-align:left;
+  padding:22px 26px;font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;line-height:1.9;text-align:left;
 }
-
-.tc{color:var(--accent)}
-.ty{color:#fbbf24}
-.tg{color:#34d399}
-.tm{color:var(--muted)}
-.tw{color:#e2e8f0}
-
+.tc{color:var(--primary)}.ty{color:#fbbf24}.tg{color:#3fb950}
+.tm{color:var(--muted)}.tw{color:#e2e8f0}
 .cursor{
-  display:inline-block;
-  width:8px;
-  height:15px;
-  background:var(--accent);
-  vertical-align:middle;
-  animation:blink 1.1s step-end infinite;
-  margin-left:2px;
+  display:inline-block;width:7px;height:14px;background:var(--primary);
+  vertical-align:middle;animation:blink 1.1s step-end infinite;margin-left:2px;
 }
+@keyframes blink{50%{opacity:0}}
 
-@keyframes blink{
-  50%{
-    opacity:0;
-  }
-}
-
-/* SECTION */
-.section{
-  position:relative;
-  z-index:1;
-  padding:100px 24px;
-}
-
-.section-inner{
-  max-width:1100px;
-  margin:0 auto;
-}
-
+/* ─── SECTION ─── */
+.section{position:relative;z-index:1;padding:96px 24px}
+.section-inner{max-width:1100px;margin:0 auto}
 .section-label{
-  font-size:.72rem;
-  font-weight:700;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  color:var(--accent);
-  margin-bottom:16px;
-  display:block;
+  font-size:.68rem;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--primary);margin-bottom:14px;display:block;
 }
-
 .section-title{
-  font-size:clamp(1.8rem,4vw,2.8rem);
-  font-weight:800;
-  letter-spacing:-.03em;
-  color:#fff;
-  margin-bottom:16px;
-  line-height:1.15;
+  font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:800;
+  letter-spacing:-.03em;color:#fff;margin-bottom:14px;line-height:1.15;
 }
+.section-sub{color:var(--muted);font-size:.97rem;line-height:1.75;max-width:500px}
 
-.section-sub{
-  color:var(--muted);
-  font-size:1rem;
-  line-height:1.7;
-  max-width:520px;
-}
-
-/* FEATURES */
+/* ─── FEATURES ─── */
 .features-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:1px;
-  border:1px solid var(--border);
-  border-radius:16px;
-  overflow:hidden;
-  margin-top:64px;
-  background:var(--border);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+  gap:1px;border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-top:60px;background:var(--border);
 }
-
-.feat{
-  background:var(--card);
-  padding:36px 32px;
-  transition:.3s;
-  position:relative;
-  overflow:hidden;
-}
-
+.feat{background:var(--card);padding:34px 30px;transition:.28s;position:relative;overflow:hidden}
 .feat::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:radial-gradient(ellipse at 0% 0%,rgba(255,105,180,.05),transparent 60%);
-  opacity:0;
-  transition:.3s;
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 0% 0%,rgba(6,182,212,.05),transparent 60%);
+  opacity:0;transition:.28s;
 }
-
-.feat:hover::before{
-  opacity:1;
-}
-
-.feat:hover{
-  background:var(--card2);
-}
-
+.feat:hover::before{opacity:1}
+.feat:hover{background:var(--card2)}
 .feat-icon{
-  width:48px;
-  height:48px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.4rem;
-  margin-bottom:20px;
+  width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:18px;
 }
-
-.fi-blue{background:rgba(255,105,180,.1);color:var(--accent)}
-.fi-purple{background:rgba(139,92,246,.12);color:var(--purple)}
-.fi-green{background:rgba(52,211,153,.1);color:#34d399}
+.fi-cyan{background:rgba(6,182,212,.1);color:var(--primary)}
+.fi-purple{background:rgba(99,102,241,.1);color:#818cf8}
+.fi-green{background:rgba(63,185,80,.1);color:#3fb950}
 .fi-orange{background:rgba(251,191,36,.1);color:#fbbf24}
 .fi-pink{background:rgba(244,114,182,.1);color:#f472b6}
-.fi-indigo{background:rgba(99,102,241,.1);color:#818cf8}
+.fi-indigo{background:rgba(129,140,248,.1);color:#a5b4fc}
+.feat h3{font-size:1rem;font-weight:700;color:#fff;margin-bottom:9px;letter-spacing:-.01em}
+.feat p{font-size:.845rem;color:var(--muted);line-height:1.7}
 
-.feat h3{
-  font-size:1.05rem;
-  font-weight:700;
-  color:#fff;
-  margin-bottom:10px;
-  letter-spacing:-.01em;
+/* ─── PRICING ─── */
+.pricing-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;margin-top:60px;
 }
-
-.feat p{
-  font-size:.875rem;
-  color:var(--muted);
-  line-height:1.7;
+.price-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;
+  transition:.25s;position:relative;overflow:hidden;
 }
+.price-card.featured{
+  border-color:rgba(6,182,212,.4);
+  background:linear-gradient(145deg,rgba(6,182,212,.06),rgba(99,102,241,.04));
+  box-shadow:0 0 30px rgba(6,182,212,.08);
+}
+.price-card.featured::before{
+  content:'Most Popular';position:absolute;top:0;right:0;
+  background:var(--grad);color:#fff;font-size:.65rem;font-weight:700;
+  padding:4px 12px;border-bottom-left-radius:8px;letter-spacing:.06em;
+}
+.price-card:hover{border-color:rgba(6,182,212,.25)}
+.price-tier{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--primary)}
+.price-amount{font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1}
+.price-amount span{font-size:.9rem;font-weight:500;color:var(--muted)}
+.price-desc{font-size:.85rem;color:var(--muted);line-height:1.6}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:8px;flex:1}
+.price-features li{
+  font-size:.84rem;color:var(--muted);padding-left:18px;position:relative;
+}
+.price-features li::before{content:'✓';position:absolute;left:0;color:var(--primary);font-weight:700}
+.price-cta{
+  display:block;width:100%;padding:10px;text-align:center;border-radius:8px;
+  font-size:.85rem;font-weight:700;text-decoration:none;transition:.18s;
+  font-family:'Inter',sans-serif;cursor:pointer;border:none;
+}
+.price-cta.primary{background:var(--grad);color:#fff;box-shadow:0 2px 14px var(--glow)}
+.price-cta.primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--glow)}
+.price-cta.ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+.price-cta.ghost:hover{border-color:var(--border2);color:#fff}
 
-/* FOOTER */
+/* ─── UPDATES ─── */
+.updates-list{max-width:860px;margin:0 auto;padding:0;display:grid;gap:16px;margin-top:60px}
+.update-card{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:14px;padding:22px;
+  transition:.22s;position:relative;overflow:hidden;
+}
+.update-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.update-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--grad);
+}
+.update-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.update-version{
+  font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--primary);
+  padding:2px 8px;background:rgba(6,182,212,.08);border:1px solid var(--border2);border-radius:5px;
+}
+.update-date{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted)}
+.update-tag{
+  font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 8px;border-radius:99px;
+}
+.tag-major{background:rgba(99,102,241,.12);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+.tag-feature{background:rgba(6,182,212,.1);color:var(--primary);border:1px solid var(--border2)}
+.tag-release{background:rgba(63,185,80,.1);color:#3fb950;border:1px solid rgba(63,185,80,.3)}
+.update-title{font-size:1.3rem;font-weight:700;margin-bottom:12px;color:#fff;letter-spacing:-.01em}
+.update-changes{list-style:none;display:grid;gap:6px}
+.update-changes li{
+  padding-left:20px;position:relative;color:var(--text);
+  font-size:.88rem;line-height:1.55;
+}
+.update-changes li::before{content:'▸';position:absolute;left:0;color:var(--primary);font-weight:700}
+.updates-loading{text-align:center;color:var(--muted);padding:40px;font-family:'JetBrains Mono',monospace}
+
+/* ─── FOOTER ─── */
 footer{
-  position:relative;
-  z-index:1;
-  padding:32px 40px;
+  position:relative;z-index:1;padding:28px 40px;
   border-top:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  gap:16px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
 }
+.footer-brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:.88rem;color:var(--muted)}
+.footer-links{display:flex;gap:22px}
+.footer-links a{color:var(--dim);font-size:.8rem;text-decoration:none;transition:.18s;font-weight:600}
+.footer-links a:hover{color:var(--muted)}
+.footer-copy{font-size:.76rem;color:var(--dim);font-family:'JetBrains Mono',monospace}
 
-.footer-brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:700;
-  font-size:.9rem;
-  color:var(--muted);
-}
+/* ─── ANIMATIONS ─── */
+.fade-up{opacity:0;transform:translateY(26px);transition:opacity .58s ease,transform .58s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
 
-.footer-links{
-  display:flex;
-  gap:24px;
-}
-
-.footer-links a{
-  color:var(--dim);
-  font-size:.82rem;
-  text-decoration:none;
-  transition:.2s;
-  font-weight:600;
-}
-
-.footer-links a:hover{
-  color:var(--muted);
-}
-
-.footer-copy{
-  font-size:.78rem;
-  color:var(--dim);
-  font-family:'DM Mono',monospace;
-}
-
-/* ANIMATION */
-.fade-up{
-  opacity:0;
-  transform:translateY(28px);
-  transition:opacity .6s ease,transform .6s ease;
-}
-
-.fade-up.visible{
-  opacity:1;
-  transform:translateY(0);
-}
-
-/* MOBILE */
+/* ─── MOBILE ─── */
 @media(max-width:640px){
-
-  nav{
-    padding:16px 20px;
-  }
-
-  .nav-links a:not(.nav-cta){
-    display:none;
-  }
-
-  .hero{
-    padding:100px 20px 60px;
-  }
-
-  footer{
-    flex-direction:column;
-    text-align:center;
-  }
+  nav{padding:14px 18px}
+  .nav-links a:not(.nav-cta){display:none}
+  .hero{padding:96px 18px 56px}
+  footer{flex-direction:column;text-align:center}
+  .pricing-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
-
 <canvas id="bg-canvas"></canvas>
 
 <!-- NAVIGATION -->
 <nav>
   <a href="#" class="logo">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm0 2.18l7 3.12V11c0 4.52-3.05 8.78-7 10.01C8.05 19.78 5 15.52 5 11V6.3l7-3.12z"/></svg>
     </div>
     <span>Onyx</span>
   </a>
 
   <div class="nav-links">
     <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
     <a href="#updates">Updates</a>
-
-    <a
-      href="https://link-center.net/5607385/OaDKtuNYFP4y"
-      target="_blank"
-      rel="noopener"
-      class="nav-cta"
-    >
+    <a href="/portal" target="_blank">Key Portal</a>
+    <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="nav-cta">
       Get start.js →
     </a>
   </div>
@@ -545,230 +314,189 @@ footer{
 
 <!-- HERO -->
 <section class="hero">
-
   <div class="hero-badge">
-    <span></span>
-    Discord Power Tool
+    <span class="hero-badge-dot"></span>
+    Discord Power Tool — v1.7.0
   </div>
 
-  <h1>
-    Your Discord.<br>
-    <span class="grad">Your Rules.</span>
-  </h1>
+  <h1>Your Discord.<br><span class="grad">Your Rules.</span></h1>
 
   <p class="hero-sub">
-    Presence, quests &amp; automation — one panel. Rich Presence, quest auto-completer, scheduled messages, auto-reply, and live activity spoofing in a single dashboard.
+    Presence, quests &amp; automation — one panel. Rich Presence, quest auto-completer,
+    scheduled messages, auto-reply, and live activity spoofing in a single dashboard.
   </p>
 
   <div class="hero-btns">
-
-    <a
-      href="https://link-center.net/5607385/OaDKtuNYFP4y"
-      target="_blank"
-      rel="noopener"
-      class="btn btn-primary"
-    >
+    <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="btn btn-primary">
       Download start.js
     </a>
-
-    <a href="#features" class="btn btn-ghost">
-      View Features
-    </a>
-
+    <a href="#features" class="btn btn-ghost">View Features</a>
   </div>
 
   <!-- TERMINAL -->
   <div class="terminal">
-
     <div class="term-bar">
       <div class="term-dot td-r"></div>
       <div class="term-dot td-y"></div>
       <div class="term-dot td-g"></div>
-
-      <span class="term-title">
-        onyx — node start.js
-      </span>
+      <span class="term-title">onyx — node start.js</span>
     </div>
-
     <div class="term-body">
-
-      <div>
-        <span class="tm">$</span>
-        <span class="tw">node start.js</span>
-      </div>
-
-      <div>
-        <span class="tg">✔</span>
-        <span class="tw">Config loaded</span>
-      </div>
-
-      <div>
-        <span class="tg">✔</span>
-        <span class="tw">Discord token detected</span>
-      </div>
-
-      <div>
-        <span class="tc">[RPC]</span>
-        <span class="tw">Presence updated → </span>
-        <span class="ty">Playing MarketDex</span>
-      </div>
-
-      <div>
-        <span class="tg">[Onyx]</span>
-        <span class="tw">Panel running on </span>
-        <span class="tc">http://localhost:3000</span>
-      </div>
-
+      <div><span class="tm">$</span> <span class="tw">node start.js</span></div>
+      <div><span class="tg">✔</span> <span class="tw">Config loaded — token verified</span></div>
+      <div><span class="tg">✔</span> <span class="tw">License valid — </span><span class="ty">1 Year</span></div>
+      <div><span class="tc">[RPC]</span> <span class="tw">Presence updated → </span><span class="ty">Playing MarketDex</span></div>
+      <div><span class="tg">[Onyx]</span> <span class="tw">Panel running on </span><span class="tc">http://localhost:3000</span></div>
+      <div><span class="tg">[KeyReset]</span> <span class="tw">Daily reset scheduler started</span></div>
       <div>&nbsp;</div>
-
-      <div>
-        <span class="tm">$</span>
-        <span class="cursor"></span>
-      </div>
-
+      <div><span class="tm">$</span> <span class="cursor"></span></div>
     </div>
   </div>
 </section>
 
 <!-- FEATURES -->
 <section id="features" class="section">
-
   <div class="section-inner">
-
     <div class="fade-up">
       <span class="section-label">Features</span>
-
-      <h2 class="section-title">
-        Everything you need.
-      </h2>
-
-      <p class="section-sub">
-        Full Discord Rich Presence customization with an easy-to-use dashboard.
-      </p>
+      <h2 class="section-title">Everything you need.</h2>
+      <p class="section-sub">Full Discord automation with an easy-to-use web dashboard — all running locally.</p>
     </div>
 
     <div class="features-grid fade-up">
-
       <div class="feat">
-        <div class="feat-icon fi-blue">🎮</div>
-
+        <div class="feat-icon fi-cyan">🎮</div>
         <h3>Rich Presence</h3>
-
-        <p>
-          Customize activities, images, buttons, timestamps, and status instantly.
-        </p>
+        <p>Customize activities, images, buttons, timestamps, and status instantly with live preview.</p>
       </div>
-
       <div class="feat">
         <div class="feat-icon fi-purple">📜</div>
-
         <h3>Quest Automation</h3>
-
-        <p>
-          Automatically complete Discord quests with live status tracking.
-        </p>
+        <p>Automatically complete Discord quests with live status tracking, logging, and auto-claim.</p>
       </div>
-
       <div class="feat">
-        <div class="feat-icon fi-green">🛡️</div>
-
-        <h3>Secure Dashboard</h3>
-
-        <p>
-          Password-protected local dashboard with session support.
-        </p>
+        <div class="feat-icon fi-green">🔑</div>
+        <h3>License System</h3>
+        <p>HMAC-signed keys with daily rotation. Sell subscriptions and revoke access instantly.</p>
       </div>
-
       <div class="feat">
         <div class="feat-icon fi-orange">🎭</div>
-
         <h3>Game Spoofing</h3>
-
-        <p>
-          Spoof popular games and apps with one click.
-        </p>
+        <p>Spoof popular games and apps with one click. Presence rotation between multiple games.</p>
       </div>
-
       <div class="feat">
-        <div class="feat-icon fi-pink">🔘</div>
-
-        <h3>Buttons & Images</h3>
-
-        <p>
-          Add clickable buttons and fully custom image assets.
-        </p>
+        <div class="feat-icon fi-pink">💬</div>
+        <h3>DM Inbox & Auto-Reply</h3>
+        <p>Read and reply to DMs from the panel. AFK responder, keyword alerts, auto-react rules.</p>
       </div>
-
       <div class="feat">
         <div class="feat-icon fi-indigo">☁️</div>
-
         <h3>Deploy Anywhere</h3>
+        <p>Supports local hosting, Docker, cloud VPS, and optional Firebase for customer data.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <p>
-          Supports Docker, Fly.io, Vercel, local hosting, and cloud deployments.
-        </p>
+<!-- PRICING -->
+<section id="pricing" class="section" style="background:rgba(6,182,212,.015);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="fade-up" style="text-align:center;margin-bottom:0">
+      <span class="section-label">Pricing</span>
+      <h2 class="section-title">Simple, honest pricing.</h2>
+      <p class="section-sub" style="margin:0 auto">Get a fresh key every 24 hours. Cancel anytime by contacting your seller.</p>
+    </div>
+
+    <div class="pricing-grid fade-up">
+      <div class="price-card">
+        <div class="price-tier">Trial</div>
+        <div class="price-amount">Free <span>/ 7 days</span></div>
+        <div class="price-desc">Try Onyx risk-free. Full access for 7 days.</div>
+        <ul class="price-features">
+          <li>All panel features</li>
+          <li>Rich Presence &amp; Quest automation</li>
+          <li>DM Inbox &amp; Servers</li>
+          <li>7-day key included</li>
+        </ul>
+        <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="price-cta ghost">Start Free Trial</a>
       </div>
 
+      <div class="price-card featured">
+        <div class="price-tier">Monthly</div>
+        <div class="price-amount">DM <span>/ month</span></div>
+        <div class="price-desc">Best for regular users. Key resets daily.</div>
+        <ul class="price-features">
+          <li>Everything in Trial</li>
+          <li>Daily key renewal</li>
+          <li>Customer key portal</li>
+          <li>Discord DM delivery</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="price-cta primary">Buy Monthly</a>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Yearly</div>
+        <div class="price-amount">DM <span>/ year</span></div>
+        <div class="price-desc">Best value. Save vs monthly billing.</div>
+        <ul class="price-features">
+          <li>Everything in Monthly</li>
+          <li>365-day key duration</li>
+          <li>Daily key renewal</li>
+          <li>No monthly renewal hassle</li>
+        </ul>
+        <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="price-cta ghost">Buy Yearly</a>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Lifetime</div>
+        <div class="price-amount">DM <span>once</span></div>
+        <div class="price-desc">Pay once, use forever. Key never expires.</div>
+        <ul class="price-features">
+          <li>Everything in Yearly</li>
+          <li>Key never expires</li>
+          <li>All future updates</li>
+          <li>Lifetime access</li>
+        </ul>
+        <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener" class="price-cta ghost">Buy Lifetime</a>
+      </div>
     </div>
+
+    <p style="text-align:center;margin-top:28px;font-size:.82rem;color:var(--dim)">
+      Already purchased? →
+      <a href="/portal" style="color:var(--primary);text-decoration:none;font-weight:600">Retrieve your key at the portal</a>
+    </p>
   </div>
 </section>
 
 <!-- UPDATES -->
 <section id="updates" class="section">
-  <div class="section-head fade-up">
-    <span class="section-tag">// changelog</span>
-    <h2>Latest Updates</h2>
-    <p>What's new in Onyx — pulled live from <code>updates.json</code>.</p>
-  </div>
-
-  <div class="updates-list fade-up" id="updates-list">
-    <div class="updates-loading">Loading updates…</div>
+  <div class="section-inner">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-label">Changelog</span>
+      <h2 class="section-title">Latest Updates</h2>
+      <p class="section-sub" style="margin:0 auto">What's new in Onyx — pulled live.</p>
+    </div>
+    <div class="updates-list fade-up" id="updates-list">
+      <div class="updates-loading">Loading updates…</div>
+    </div>
   </div>
 </section>
 
-<style>
-.updates-list{max-width:880px;margin:0 auto;padding:0 24px;display:grid;gap:18px}
-.update-card{background:linear-gradient(135deg,var(--card),var(--card2));
-  border:1px solid var(--border);border-radius:16px;padding:24px;
-  transition:.25s;position:relative;overflow:hidden}
-.update-card:hover{border-color:var(--border2);transform:translateY(-2px)}
-.update-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,var(--accent),var(--accent2))}
-.update-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.update-version{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent);
-  padding:3px 9px;background:rgba(255,105,180,.08);border:1px solid var(--border2);border-radius:6px}
-.update-date{font-family:'DM Mono',monospace;font-size:.74rem;color:var(--muted)}
-.update-tag{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  padding:3px 9px;border-radius:99px}
-.tag-major{background:rgba(139,92,246,.12);color:#b794f4;border:1px solid rgba(139,92,246,.3)}
-.tag-feature{background:rgba(255,105,180,.1);color:var(--accent);border:1px solid var(--border2)}
-.tag-release{background:rgba(0,217,126,.1);color:#34d399;border:1px solid rgba(0,217,126,.3)}
-.update-title{font-size:1.4rem;font-weight:700;margin-bottom:14px;color:#fff;letter-spacing:-.01em}
-.update-changes{list-style:none;display:grid;gap:8px}
-.update-changes li{padding-left:22px;position:relative;color:var(--text);font-size:.92rem;line-height:1.55}
-.update-changes li::before{content:'▸';position:absolute;left:0;top:0;color:var(--accent);font-weight:700}
-.updates-loading{text-align:center;color:var(--muted);padding:40px;font-family:'DM Mono',monospace}
-@media(max-width:560px){
-  .update-card{padding:18px}
-  .update-title{font-size:1.15rem}
-  .update-changes li{font-size:.86rem}
-}
-</style>
-
 <script>
 (async function(){
-  try {
-    const res = await fetch('/api/updates').catch(()=>fetch('/data/updates.json'));
-    const data = res.ok ? await res.json() : await fetch('data/updates.json').then(r=>r.json());
-    const list = document.getElementById('updates-list');
-    const updates = data.updates || [];
-    if (!updates.length) { list.innerHTML = '<div class="updates-loading">No updates yet.</div>'; return; }
-    list.innerHTML = updates.map(u => `
+  try{
+    const res=await fetch('/api/updates').catch(()=>null);
+    const data=res&&res.ok?await res.json():null;
+    const list=document.getElementById('updates-list');
+    const updates=(data&&data.updates)||[];
+    if(!updates.length){list.innerHTML='<div class="updates-loading">No updates yet.</div>';return}
+    list.innerHTML=updates.map(u=>`
       <article class="update-card">
         <div class="update-head">
           <span class="update-version">v${u.version}</span>
           <span class="update-date">${u.date}</span>
-          ${u.tag ? `<span class="update-tag tag-${u.tag}">${u.tag}</span>` : ''}
+          ${u.tag?`<span class="update-tag tag-${u.tag}">${u.tag}</span>`:''}
         </div>
         <h3 class="update-title">${u.title}</h3>
         <ul class="update-changes">
@@ -776,171 +504,84 @@ footer{
         </ul>
       </article>
     `).join('');
-  } catch (e) {
-    document.getElementById('updates-list').innerHTML =
-      '<div class="updates-loading">Could not load updates.</div>';
-  }
+  }catch{document.getElementById('updates-list').innerHTML='<div class="updates-loading">Could not load updates.</div>'}
 })();
 </script>
 
 <!-- FOOTER -->
 <footer>
-
   <div class="footer-brand">
-
-    <div class="logo-mark" style="width:28px;height:28px;border-radius:7px">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#fff">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-      </svg>
+    <div class="logo-mark" style="width:26px;height:26px;border-radius:6px">
+      <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:#fff"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1z"/></svg>
     </div>
-
     Onyx
   </div>
 
   <div class="footer-links">
-
-    <a
-      href="https://github.com/Haymooed/Onyx"
-      target="_blank"
-      rel="noopener"
-    >
-      GitHub
-    </a>
-
-    <a href="#features">
-      Features
-    </a>
-
-    <a href="#updates">
-      Updates
-    </a>
-
-    <a
-      href="https://link-center.net/5607385/OaDKtuNYFP4y"
-      target="_blank"
-      rel="noopener"
-    >
-      Download
-    </a>
-
+    <a href="https://github.com/Haymooed/Onyx" target="_blank" rel="noopener">GitHub</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#updates">Updates</a>
+    <a href="/portal" target="_blank">Key Portal</a>
+    <a href="https://link-center.net/5607385/OaDKtuNYFP4y" target="_blank" rel="noopener">Download</a>
   </div>
 
-  <p class="footer-copy">
-    © 2026 Onyx — Open Source
-  </p>
-
+  <p class="footer-copy">© 2026 Onyx</p>
 </footer>
 
 <script>
-// CANVAS BACKGROUND
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
+// CANVAS PARTICLE BACKGROUND
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,dots=[];
 
-let W;
-let H;
-let dots = [];
-
-function resize(){
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  initDots();
-}
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;initDots()}
 
 function initDots(){
-  dots = [];
-
-  const count = Math.floor((W * H) / 18000);
-
-  for(let i = 0; i < count; i++){
-
+  dots=[];
+  const count=Math.floor((W*H)/20000);
+  for(let i=0;i<count;i++){
     dots.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: Math.random() * 1.4 + 0.3,
-      vx: (Math.random() - .5) * .25,
-      vy: (Math.random() - .5) * .25,
-      a: Math.random() * .5 + .1
+      x:Math.random()*W,y:Math.random()*H,
+      r:Math.random()*1.3+0.3,
+      vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,
+      a:Math.random()*.45+.08
     });
-
   }
 }
 
 function draw(){
-
   ctx.clearRect(0,0,W,H);
-
-  const maxDist = 130;
-
-  for(let i = 0; i < dots.length; i++){
-
-    const d = dots[i];
-
-    d.x += d.vx;
-    d.y += d.vy;
-
-    if(d.x < 0) d.x = W;
-    if(d.x > W) d.x = 0;
-
-    if(d.y < 0) d.y = H;
-    if(d.y > H) d.y = 0;
-
-    ctx.beginPath();
-    ctx.arc(d.x,d.y,d.r,0,Math.PI * 2);
-
-    ctx.fillStyle = `rgba(0,212,255,${d.a * .7})`;
-
-    ctx.fill();
-
-    for(let j = i + 1; j < dots.length; j++){
-
-      const b = dots[j];
-
-      const dx = d.x - b.x;
-      const dy = d.y - b.y;
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if(dist < maxDist){
-
-        ctx.beginPath();
-
-        ctx.moveTo(d.x,d.y);
-        ctx.lineTo(b.x,b.y);
-
-        ctx.strokeStyle = `rgba(0,212,255,${.07 * (1 - dist/maxDist)})`;
-
-        ctx.lineWidth = .5;
-
-        ctx.stroke();
+  const maxDist=125;
+  for(let i=0;i<dots.length;i++){
+    const d=dots[i];
+    d.x+=d.vx;d.y+=d.vy;
+    if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+    if(d.y<0)d.y=H;if(d.y>H)d.y=0;
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(6,182,212,${d.a*.75})`;ctx.fill();
+    for(let j=i+1;j<dots.length;j++){
+      const b=dots[j];
+      const dx=d.x-b.x,dy=d.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<maxDist){
+        ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(6,182,212,${.06*(1-dist/maxDist)})`;
+        ctx.lineWidth=.5;ctx.stroke();
       }
     }
   }
-
   requestAnimationFrame(draw);
 }
 
-resize();
-draw();
+resize();draw();
+window.addEventListener('resize',resize);
 
-window.addEventListener('resize', resize);
-
-// SCROLL ANIMATION
-const observer = new IntersectionObserver((entries)=>{
-
-  entries.forEach(entry=>{
-
-    if(entry.isIntersecting){
-      entry.target.classList.add('visible');
-    }
-
-  });
-
-},{threshold:0.15});
-
-document.querySelectorAll('.fade-up').forEach(el=>{
-  observer.observe(el);
-});
+// SCROLL FADE
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:0.12});
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
 </script>
-
 </body>
 </html>
