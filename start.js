@@ -43,13 +43,13 @@ if (!fs.existsSync(path.join(WORK_DIR, '.git'))) {
 const nodeModulesExist = fs.existsSync(path.join(WORK_DIR, 'node_modules'));
 if (!nodeModulesExist) {
     console.log("Installing missing dependencies...");
-    run(`npm install --no-package-lock --omit=optional`);
+    run(`npm install --no-package-lock --omit=optional --legacy-peer-deps`);
 } else {
     // Optional: check if package.json was updated in the last git pull
     // For simplicity and speed, we can skip if node_modules exists, 
     // or run a quick install which npm handles efficiently anyway.
     console.log("Verifying dependencies...");
-    run(`npm install --no-package-lock --omit=optional --prefer-offline --no-audit`, { silent: true });
+    run(`npm install --no-package-lock --omit=optional --legacy-peer-deps --prefer-offline --no-audit`, { silent: true });
 }
 
 // 3. Start the server
