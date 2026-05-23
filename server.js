@@ -15,12 +15,14 @@ const QuestManagerBridge = require('./quests/manager');
 const { MessageScheduler } = require('./automation/messages');
 const { AutoFeatures } = require('./automation/autoFeatures');
 const { purgeOwn, sendTo, massDm } = require('./automation/utility');
+const { validateKey } = require('./lib/license');
 
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
 const SETTINGS_PATH = path.join(__dirname, 'data', 'settings.json');
 const HISTORY_PATH = path.join(__dirname, 'data', 'quest-history.json');
 const ACCOUNTS_PATH = path.join(__dirname, 'data', 'accounts.json');
+const LICENSE_PATH = path.join(__dirname, 'data', 'license.json');
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
 
 const DEFAULT_CONFIG = {
@@ -120,6 +122,32 @@ function saveConfig(data) {
 function getPanelPass() {
     const cfg = loadConfig();
     return cfg.panel_pass || process.env.PANEL_PASS || 'admin';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// License
+// ─────────────────────────────────────────────────────────────────────────────
+function loadLicense() {
+    try {
+        if (!fs.existsSync(LICENSE_PATH)) return null;
+        return JSON.parse(fs.readFileSync(LICENSE_PATH, 'utf8'));
+    } catch { return null; }
+}
+
+function saveLicense(data) {
+    const dir = path.dirname(LICENSE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(LICENSE_PATH, JSON.stringify(data, null, 2));
+}
+
+// Returns true when the panel should allow access (license valid or no secret set)
+function isLicensed() {
+    if (isVercel) return true;
+    if (!process.env.LICENSE_SECRET) return true; // dev mode — no secret configured
+    const stored = loadLicense();
+    if (!stored?.key) return false;
+    const result = validateKey(stored.key);
+    return result.valid;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -491,6 +519,75 @@ function getQuestBridge() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Reset idle timer on any authenticated API activity
 app.use('/api', (req, res, next) => { resetActivityTime(); next(); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// License routes (must be before auth middleware)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/activate', (req, res) => {
+    if (isVercel || !process.env.LICENSE_SECRET) return res.redirect('/panel');
+    if (isLicensed()) return res.redirect('/panel');
+    res.render('activate');
+});
+
+app.post('/api/activate', (req, res) => {
+    if (isVercel) return res.json({ success: true, tier: 'Unlimited', daysLeft: null });
+    try {
+        const { key } = req.body || {};
+        if (!key) return res.json({ success: false, error: 'No key provided' });
+        const result = validateKey(key);
+        if (!result.valid) return res.json({ success: false, error: result.error || 'Invalid or expired key' });
+        saveLicense({
+            key: result.key,
+            tier: result.tier,
+            tierCode: result.tierCode,
+            expiresAt: result.expiresAt,
+            activatedAt: new Date().toISOString()
+        });
+        res.json({ success: true, tier: result.tier, daysLeft: result.daysLeft });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.get('/api/license', (req, res) => {
+    if (isVercel || !process.env.LICENSE_SECRET) {
+        return res.json({ success: true, licensed: true, tier: 'Unrestricted', devMode: true });
+    }
+    const stored = loadLicense();
+    if (!stored) return res.json({ success: true, licensed: false });
+    const result = validateKey(stored.key);
+    res.json({
+        success: true,
+        licensed: result.valid,
+        tier: result.tier,
+        tierCode: result.tierCode,
+        expiresAt: result.expiresAt,
+        daysLeft: result.daysLeft,
+        expired: result.expired,
+        activatedAt: stored.activatedAt,
+        keyPreview: stored.key ? stored.key.slice(0, 14) + '…' : null
+    });
+});
+
+app.post('/api/license/deactivate', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        if (fs.existsSync(LICENSE_PATH)) fs.unlinkSync(LICENSE_PATH);
+        res.json({ success: true });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+// License gate — redirect unlicensed users to /activate
+app.use((req, res, next) => {
+    if (isVercel || !process.env.LICENSE_SECRET) return next();
+    const skip = req.path === '/activate' || req.path === '/api/activate' ||
+                 req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public');
+    if (skip) return next();
+    if (!isLicensed()) return res.redirect('/activate');
+    next();
+});
 
 app.get('/login', (req, res) => {
     if (isVercel) return res.redirect('/');

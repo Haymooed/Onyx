@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Onyx — Activate</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--card:#1c2130;--border:rgba(255,255,255,.07);--primary:#06b6d4;--grad:linear-gradient(135deg,#06b6d4,#6366f1);--text:#e6edf3;--text-2:#8b949e;--red:#f85149;--green:#3fb950}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;background-image:radial-gradient(ellipse at 30% 40%,rgba(6,182,212,.06) 0%,transparent 55%),radial-gradient(ellipse at 75% 70%,rgba(99,102,241,.05) 0%,transparent 50%)}
+.wrap{width:100%;max-width:420px;padding:20px;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:36px 32px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:28px;gap:10px}
+.logo-icon{width:46px;height:46px;background:var(--grad);border-radius:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(6,182,212,.25)}
+.logo-icon svg{width:22px;height:22px;fill:#fff}
+.logo-name{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.logo-sub{font-size:13px;color:var(--text-2);text-align:center}
+.field{margin-bottom:16px}
+label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 13px;outline:none;transition:border-color .15s,box-shadow .15s;font-family:'JetBrains Mono',monospace;letter-spacing:.05em}
+input:focus{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 3px rgba(6,182,212,.08)}
+input::placeholder{color:#3d444d;font-family:'Inter',sans-serif;letter-spacing:0}
+.btn{width:100%;padding:11px;border:none;border-radius:8px;background:var(--grad);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 2px 14px rgba(6,182,212,.2);letter-spacing:.01em}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(6,182,212,.3)}
+.btn:active{transform:none}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.err{display:none;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:8px;color:var(--red);font-size:13px;padding:10px 13px;margin-bottom:14px;text-align:center}
+.success{display:none;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:13px;padding:10px 13px;margin-bottom:14px;text-align:center}
+.hint{font-size:12px;color:var(--text-2);text-align:center;margin-top:14px;line-height:1.6}
+.hint code{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;color:var(--primary)}
+.format-hint{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:11.5px;color:var(--text-2)}
+.format-hint .seg{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-2)}
+.format-hint .dash{color:var(--text-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm0 2.18l7 3.12V11c0 4.52-3.05 8.78-7 10.01C8.05 19.78 5 15.52 5 11V6.3l7-3.12z"/></svg></div>
+      <div class="logo-name">Onyx</div>
+      <div class="logo-sub">Enter your license key to activate</div>
+    </div>
+
+    <div id="err" class="err"></div>
+    <div id="ok" class="success"></div>
+
+    <form onsubmit="activate(event)">
+      <div class="field">
+        <label>License Key</label>
+        <input type="text" id="keyInput" placeholder="ONYX-XXXX-XXXX-XXXX-XXXXXXXX" autocomplete="off" spellcheck="false" required>
+      </div>
+      <button class="btn" type="submit" id="activateBtn">Activate Onyx</button>
+    </form>
+
+    <div class="format-hint">
+      <span class="seg">ONYX</span><span class="dash">-</span>
+      <span class="seg">TIER</span><span class="dash">-</span>
+      <span class="seg">EXPIRY</span><span class="dash">-</span>
+      <span class="seg">SALT</span><span class="dash">-</span>
+      <span class="seg">SIGNATURE</span>
+    </div>
+
+    <div class="hint">
+      Purchased a key? Paste it above.<br>
+      Having trouble? Contact your seller.
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-format key as user types
+document.getElementById('keyInput').addEventListener('input', function() {
+  let val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (val.startsWith('ONYX')) val = val.slice(4);
+  const parts = [];
+  parts.push('ONYX');
+  if (val.length > 0)  parts.push(val.slice(0, 4));
+  if (val.length > 4)  parts.push(val.slice(4, 8));
+  if (val.length > 8)  parts.push(val.slice(8, 12));
+  if (val.length > 12) parts.push(val.slice(12, 20));
+  this.value = parts.join('-');
+});
+
+async function activate(e) {
+  e.preventDefault();
+  const btn = document.getElementById('activateBtn');
+  const errEl = document.getElementById('err');
+  const okEl = document.getElementById('ok');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+  btn.textContent = 'Validating…';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: document.getElementById('keyInput').value })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      okEl.textContent = `✓ Activated — ${d.tier}${d.daysLeft ? ` · ${d.daysLeft} days remaining` : ''}`;
+      okEl.style.display = 'block';
+      setTimeout(() => window.location.href = '/panel', 1200);
+    } else {
+      errEl.textContent = d.error || 'Activation failed';
+      errEl.style.display = 'block';
+      btn.textContent = 'Activate Onyx';
+      btn.disabled = false;
+    }
+  } catch {
+    errEl.textContent = 'Connection error — try again';
+    errEl.style.display = 'block';
+    btn.textContent = 'Activate Onyx';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

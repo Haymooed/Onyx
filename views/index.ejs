@@ -719,6 +719,20 @@ td.dim{color:var(--text-2);font-size:12px}
       </div>
     </div>
   </div>
+
+  <!-- License card — full width -->
+  <div class="card" id="licenseCard">
+    <div class="card-header">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        License
+      </div>
+      <button class="btn btn-ghost" onclick="loadLicenseInfo()" style="padding:5px 10px;font-size:12px">↻ Refresh</button>
+    </div>
+    <div id="licenseBody">
+      <div style="color:var(--text-2);font-size:13px">Loading license info…</div>
+    </div>
+  </div>
 </div>
 
   </div><!-- /content -->
@@ -754,7 +768,7 @@ function showSection(el){
   if(sec==='dms')loadDMs()
   if(sec==='servers')loadServers()
   if(sec==='accounts')loadAccounts()
-  if(sec==='settings'){loadQuestHistory();loadAccountsForSettings()}
+  if(sec==='settings'){loadQuestHistory();loadAccountsForSettings();loadLicenseInfo()}
   if(sec==='dashboard')loadDashboard()
 }
 
@@ -1132,6 +1146,43 @@ async function massDm(){const ids=gv('massIds').split('\n').map(s=>s.trim()).fil
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 async function changePassword(){const pw=gv('newPw'),confirm=gv('confirmPw');if(!pw){toast('Enter a password','err');return}if(pw!==confirm){toast("Passwords don't match",'err');return}const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({panel_pass:pw})});const d=await r.json();if(d.success){toast('Password updated — redirecting…','ok');setTimeout(()=>location.href='/login',2000)}else toast(d.error||'Failed','err')}
+
+// ── License ───────────────────────────────────────────────────────────────────
+async function loadLicenseInfo(){
+  const el=document.getElementById('licenseBody');if(!el)return;
+  try{
+    const r=await fetch('/api/license');const d=await r.json();
+    if(d.devMode){el.innerHTML='<div style="display:flex;align-items:center;gap:10px"><span class="badge badge-yellow">Dev Mode</span><span style="font-size:12.5px;color:var(--text-2)">LICENSE_SECRET not set — license check disabled</span></div>';return}
+    if(!d.licensed&&!d.expired){
+      el.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><span class="badge badge-red">Not Activated</span><a href="/activate" class="btn btn-primary" style="font-size:12px;padding:5px 12px;text-decoration:none">Activate Now</a></div>`;return;
+    }
+    const tierBadge=d.tierCode==='LIFE'?'badge-cyan':d.expired?'badge-red':'badge-green';
+    const statusBadge=d.expired?'<span class="badge badge-red">Expired</span>':'<span class="badge badge-green">Active</span>';
+    const expiry=d.expiresAt?`<div style="font-size:12px;color:var(--text-2)">Expires: ${new Date(d.expiresAt).toDateString()}${d.daysLeft?` <span style="color:var(--primary)">(${d.daysLeft} days left)</span>`:''}</div>`:'<div style="font-size:12px;color:var(--text-2)">Never expires</div>';
+    const activatedDate=d.activatedAt?`<div style="font-size:12px;color:var(--text-2)">Activated: ${new Date(d.activatedAt).toDateString()}</div>`:'';
+    el.innerHTML=`
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${tierBadge}" style="font-size:11px">${e(d.tier||'Unknown')}</span>
+            ${statusBadge}
+          </div>
+          <div style="font-size:12px;color:var(--text-2);font-family:'JetBrains Mono',monospace">${e(d.keyPreview||'')}</div>
+          ${expiry}
+          ${activatedDate}
+        </div>
+        ${!d.expired?`<button class="btn btn-danger" style="font-size:12px;padding:5px 12px" onclick="deactivateLicense()">Deactivate</button>`:'<a href="/activate" class="btn btn-primary" style="font-size:12px;padding:5px 12px;text-decoration:none">Re-activate</a>'}
+      </div>`;
+  }catch{el.innerHTML='<div style="color:var(--text-2);font-size:13px">Could not load license info</div>'}
+}
+
+async function deactivateLicense(){
+  if(!confirm('Deactivate your license? You will need to re-enter the key to access the panel.'))return;
+  const r=await fetch('/api/license/deactivate',{method:'POST'});
+  const d=await r.json();
+  if(d.success){toast('License deactivated — redirecting…','info');setTimeout(()=>location.href='/activate',1500)}
+  else toast(d.error||'Failed','err')
+}
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();
