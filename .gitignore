@@ -5,6 +5,6 @@ hello.py
 
 .env
 .env.txt
-node_modules/
+# node_modules intentionally committed — avoids npm install on disk-limited servers
 config.yml
 start.js.old
