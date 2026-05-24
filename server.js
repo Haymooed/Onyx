@@ -585,9 +585,9 @@ app.post('/api/license/deactivate', (req, res) => {
 
 // License gate — redirect unlicensed users to /activate
 app.use((req, res, next) => {
-    if (isVercel) return next();
+    if (isVercel || !process.env.LICENSE_SECRET) return next();
     const skip = req.path === '/activate' || req.path === '/api/activate' ||
-                 req.path.startsWith('/public') ||
+                 req.path === '/login' || req.path.startsWith('/api/login') || req.path.startsWith('/public') ||
                  req.path === '/portal' || req.path.startsWith('/api/portal');
     if (skip) return next();
     if (!isLicensed()) return res.redirect('/activate');
@@ -600,13 +600,14 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
-    const { password } = req.body || {};
-    if (password === getPanelPass()) {
-        res.cookie('auth', password, { maxAge: 86400000, httpOnly: true });
-        res.json({ success: true });
-    } else {
-        res.json({ success: false, error: 'Invalid password' });
+    const { password, licenseKey } = req.body || {};
+    if (password !== getPanelPass()) return res.json({ success: false, error: 'Invalid password' });
+    if (licenseKey) {
+        const result = validateKey(licenseKey.trim());
+        if (!result.valid) return res.json({ success: false, error: result.error || 'Invalid license key' });
     }
+    res.cookie('auth', password, { maxAge: 86400000, httpOnly: true });
+    res.json({ success: true });
 });
 
 app.use((req, res, next) => {

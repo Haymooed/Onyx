@@ -198,6 +198,11 @@ input::placeholder { color: #3d444d; }
           </button>
         </div>
       </div>
+      <div class="field">
+        <label>License Key</label>
+        <input type="text" id="licenseKey" placeholder="ONYX-XXXX-XXXX-XXXX-XXXXXXXX" style="font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        <div style="font-size:11px;color:var(--text-2);margin-top:5px">Get your key at <a href="/portal" style="color:var(--primary);text-decoration:none">/portal</a> — leave blank if not required</div>
+      </div>
       <button class="btn" type="submit" id="loginBtn">Sign In</button>
     </form>
   </div>
@@ -225,7 +230,7 @@ async function login(e) {
     const r = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: document.getElementById('pw').value })
+      body: JSON.stringify({ password: document.getElementById('pw').value, licenseKey: document.getElementById('licenseKey').value.trim() || undefined })
     });
     const d = await r.json();
     if (d.success) {
