@@ -199,9 +199,8 @@ input::placeholder { color: #3d444d; }
         </div>
       </div>
       <div class="field">
-        <label>License Key</label>
-        <input type="text" id="licenseKey" placeholder="ONYX-XXXX-XXXX-XXXX-XXXXXXXX" style="font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
-        <div style="font-size:11px;color:var(--text-2);margin-top:5px">Get your key at <a href="/portal" style="color:var(--primary);text-decoration:none">/portal</a> — leave blank if not required</div>
+        <label>Admin Key <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#4d5562">(optional — unlocks Customers panel)</span></label>
+        <input type="password" id="licenseKey" placeholder="Enter admin key to unlock all features">
       </div>
       <button class="btn" type="submit" id="loginBtn">Sign In</button>
     </form>

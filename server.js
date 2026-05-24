@@ -30,6 +30,7 @@ const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
 const DEFAULT_CONFIG = {
     token: 'PASTE_YOUR_TOKEN_HERE',
     panel_pass: 'admin',
+    admin_key: 'onyxadmin',
     status: 'online',
     rpc: {
         enabled: true,
@@ -124,6 +125,15 @@ function saveConfig(data) {
 function getPanelPass() {
     const cfg = loadConfig();
     return cfg.panel_pass || process.env.PANEL_PASS || 'admin';
+}
+
+function getAdminKey() {
+    const cfg = loadConfig();
+    return cfg.admin_key || process.env.ADMIN_KEY || 'onyxadmin';
+}
+
+function isAdminRequest(req) {
+    return req.cookies.adminAuth === getAdminKey();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -602,11 +612,14 @@ app.get('/login', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { password, licenseKey } = req.body || {};
     if (password !== getPanelPass()) return res.json({ success: false, error: 'Invalid password' });
-    if (licenseKey) {
-        const result = validateKey(licenseKey.trim());
-        if (!result.valid) return res.json({ success: false, error: result.error || 'Invalid license key' });
+    if (licenseKey && licenseKey.trim() !== getAdminKey()) {
+        return res.json({ success: false, error: 'Invalid admin key' });
     }
-    res.cookie('auth', password, { maxAge: 86400000, httpOnly: true });
+    const cookieOpts = { maxAge: 86400000, httpOnly: true };
+    res.cookie('auth', password, cookieOpts);
+    if (licenseKey && licenseKey.trim() === getAdminKey()) {
+        res.cookie('adminAuth', getAdminKey(), cookieOpts);
+    }
     res.json({ success: true });
 });
 
@@ -1166,8 +1179,13 @@ app.post('/api/restore', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Customer admin
+// Customer admin — requires admin key cookie
 // ─────────────────────────────────────────────────────────────────────────────
+app.use('/api/admin', (req, res, next) => {
+    if (!isAdminRequest(req)) return res.status(403).json({ success: false, error: 'Admin access required' });
+    next();
+});
+
 app.get('/api/admin/customers', async (req, res) => {
     if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
     try {
@@ -1277,7 +1295,7 @@ app.get('/panel', (req, res) => {
         return res.status(403).send('Access Denied');
     }
 
-    res.render('index');
+    res.render('index', { isAdmin: isAdminRequest(req) });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
