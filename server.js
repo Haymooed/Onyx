@@ -129,11 +129,13 @@ function getPanelPass() {
 
 function getAdminKey() {
     const cfg = loadConfig();
-    return cfg.admin_key || process.env.ADMIN_KEY || 'onyxadmin';
+    return cfg.admin_key || process.env.ADMIN_KEY || null;
 }
 
 function isAdminRequest(req) {
-    return req.cookies.adminAuth === getAdminKey();
+    const key = getAdminKey();
+    if (!key) return req.cookies.adminAuth === 'unrestricted';
+    return req.cookies.adminAuth === key;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -612,13 +614,18 @@ app.get('/login', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { password, licenseKey } = req.body || {};
     if (password !== getPanelPass()) return res.json({ success: false, error: 'Invalid password' });
-    if (licenseKey && licenseKey.trim() !== getAdminKey()) {
-        return res.json({ success: false, error: 'Invalid admin key' });
-    }
     const cookieOpts = { maxAge: 86400000, httpOnly: true };
     res.cookie('auth', password, cookieOpts);
-    if (licenseKey && licenseKey.trim() === getAdminKey()) {
-        res.cookie('adminAuth', getAdminKey(), cookieOpts);
+    const adminKey = getAdminKey();
+    if (adminKey) {
+        if (licenseKey && licenseKey.trim() !== adminKey) {
+            return res.json({ success: false, error: 'Invalid admin key' });
+        }
+        if (licenseKey && licenseKey.trim() === adminKey) {
+            res.cookie('adminAuth', adminKey, cookieOpts);
+        }
+    } else {
+        res.cookie('adminAuth', 'unrestricted', cookieOpts);
     }
     res.json({ success: true });
 });
