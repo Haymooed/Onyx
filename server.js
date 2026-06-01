@@ -461,7 +461,6 @@ async function connectClient(token) {
             autoFeatures.setWebhookFn((payload) => sendWebhook(settings.webhookUrl, payload));
             autoFeatures.bind(discordClient);
         } catch (e) { console.error('[Auto] bind:', e.message); }
-<<<<<<< Updated upstream
         try { nitroSniper.attach(discordClient); } catch (e) { console.error('[NitroSniper] attach:', e.message); }
         try { giveawaySniper.attach(discordClient); } catch (e) { console.error('[GiveawaySniper] attach:', e.message); }
         try { autoBump.attach(discordClient); } catch (e) { console.error('[AutoBump] attach:', e.message); }
