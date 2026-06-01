@@ -2,13 +2,7 @@
 
 const https = require('https');
 
-// ─── RedGifs API ─────────────────────────────────────────────────────────────
-
-// Two separate token caches so gay session context doesn't bleed into Rivals searches
-let _rgTokenGay = null;
-let _rgTokenGayExpiry = 0;
-let _rgTokenRivals = null;
-let _rgTokenRivalsExpiry = 0;
+// ─── HTTP helper ──────────────────────────────────────────────────────────────
 
 function httpsGet(url, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -35,27 +29,21 @@ function httpsGet(url, headers = {}) {
     });
 }
 
-async function fetchFreshToken() {
+// ─── RedGifs (gay commands only) ─────────────────────────────────────────────
+
+let _rgToken = null;
+let _rgTokenExpiry = 0;
+
+async function getRgToken() {
+    if (_rgToken && Date.now() < _rgTokenExpiry) return _rgToken;
     const { body } = await httpsGet('https://api.redgifs.com/v2/auth/temporary');
-    return body.token;
+    _rgToken = body.token;
+    _rgTokenExpiry = Date.now() + 23 * 60 * 60 * 1000;
+    return _rgToken;
 }
 
-async function getGayToken() {
-    if (_rgTokenGay && Date.now() < _rgTokenGayExpiry) return _rgTokenGay;
-    _rgTokenGay = await fetchFreshToken();
-    _rgTokenGayExpiry = Date.now() + 23 * 60 * 60 * 1000;
-    return _rgTokenGay;
-}
-
-async function getRivalsToken() {
-    if (_rgTokenRivals && Date.now() < _rgTokenRivalsExpiry) return _rgTokenRivals;
-    _rgTokenRivals = await fetchFreshToken();
-    _rgTokenRivalsExpiry = Date.now() + 23 * 60 * 60 * 1000;
-    return _rgTokenRivals;
-}
-
-async function searchRedgifs(query, count = 40, tokenFn = getGayToken) {
-    const token = await tokenFn();
+async function searchRedgifs(query, count = 40) {
+    const token = await getRgToken();
     const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(query)}&count=${count}&order=trending`;
     const { body } = await httpsGet(url, { Authorization: `Bearer ${token}` });
     const gifs = body?.gifs;
@@ -64,62 +52,88 @@ async function searchRedgifs(query, count = 40, tokenFn = getGayToken) {
     return gif.urls?.hd || gif.urls?.sd || `https://www.redgifs.com/watch/${gif.id}`;
 }
 
-// ─── Marvel Rivals NSFW commands ─────────────────────────────────────────────
-// Each hero maps to a RedGifs search query. Command = !<heroname> (no spaces).
+// ─── Rule34.xxx (Rivals commands) ────────────────────────────────────────────
+
+async function searchRule34(tags) {
+    // Try animated/video first for better content
+    const animated = encodeURIComponent(tags + ' animated');
+    const base = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=`;
+
+    let { body } = await httpsGet(base + animated);
+    let posts = Array.isArray(body) ? body : [];
+
+    // Fall back to any content if no animated results
+    if (posts.length === 0) {
+        ({ body } = await httpsGet(base + encodeURIComponent(tags)));
+        posts = Array.isArray(body) ? body : [];
+    }
+
+    if (posts.length === 0) return null;
+
+    // Prefer actual video/gif files
+    const media = posts.filter(p =>
+        p.file_url && /\.(gif|mp4|webm)$/i.test(p.file_url)
+    );
+    const pool = media.length > 0 ? media : posts.filter(p => p.file_url);
+    if (pool.length === 0) return null;
+
+    return pool[Math.floor(Math.random() * pool.length)].file_url;
+}
+
+// ─── Marvel Rivals hero → Rule34 tags ────────────────────────────────────────
 
 const RIVALS_NSFW = {
-    '!ironman':        'iron man sfm 3d hentai straight female',
-    '!spiderman':      'spider-man sfm 3d hentai straight female',
-    '!miles':          'miles morales sfm 3d hentai straight',
-    '!venom':          'venom sfm 3d hentai straight female',
-    '!thor':           'thor sfm 3d hentai straight female',
-    '!hulk':           'hulk sfm 3d hentai straight female',
-    '!shehulk':        'she-hulk sfm 3d hentai',
-    '!captainamerica': 'captain america sfm 3d hentai straight female',
-    '!storm':          'storm marvel sfm 3d hentai',
-    '!magneto':        'magneto sfm 3d hentai straight female',
-    '!scarletwitch':   'scarlet witch sfm 3d hentai',
-    '!doctorstrange':  'doctor strange sfm 3d hentai straight female',
-    '!blackpanther':   'black panther sfm 3d hentai straight female',
-    '!blackwidow':     'black widow sfm 3d hentai',
-    '!hawkeye':        'hawkeye marvel sfm 3d hentai straight female',
-    '!wolverine':      'wolverine sfm 3d hentai straight female',
-    '!loki':           'loki sfm 3d hentai straight female',
-    '!lunasnow':       'luna snow sfm 3d hentai',
-    '!namor':          'namor sfm 3d hentai straight female',
-    '!peniparker':     'peni parker sfm 3d hentai',
-    '!punisher':       'punisher sfm 3d hentai straight female',
-    '!wintersoldier':  'winter soldier sfm 3d hentai straight female',
-    '!starlord':       'star-lord sfm 3d hentai straight female',
-    '!hela':           'hela sfm 3d hentai',
-    '!adamwarlock':    'adam warlock sfm 3d hentai straight female',
-    '!moonknight':     'moon knight sfm 3d hentai straight female',
-    '!ironfist':       'iron fist sfm 3d hentai straight female',
-    '!mrfantastic':    'mister fantastic sfm 3d hentai straight female',
-    '!invisiblewoman': 'invisible woman sfm 3d hentai',
-    '!humantorch':     'human torch sfm 3d hentai straight female',
-    '!thething':       'the thing marvel sfm 3d hentai straight female',
-    '!squirrelgirl':   'squirrel girl sfm 3d hentai',
-    '!cloak':          'cloak dagger sfm 3d hentai',
-    '!jefftheshark':   'jeff land shark sfm 3d hentai',
+    '!ironman':        'iron_man',
+    '!spiderman':      'peter_parker',
+    '!miles':          'miles_morales',
+    '!venom':          'venom_(marvel)',
+    '!thor':           'thor_odinson',
+    '!hulk':           'hulk',
+    '!shehulk':        'she-hulk',
+    '!captainamerica': 'captain_america',
+    '!storm':          'storm_(marvel)',
+    '!magneto':        'magneto',
+    '!scarletwitch':   'scarlet_witch',
+    '!doctorstrange':  'doctor_strange',
+    '!blackpanther':   'black_panther_(marvel)',
+    '!blackwidow':     'natasha_romanoff',
+    '!hawkeye':        'clint_barton',
+    '!wolverine':      'wolverine',
+    '!loki':           'loki_laufeyson',
+    '!lunasnow':       'luna_snow',
+    '!namor':          'namor_(marvel)',
+    '!peniparker':     'peni_parker',
+    '!punisher':       'frank_castle',
+    '!wintersoldier':  'bucky_barnes',
+    '!starlord':       'peter_quill',
+    '!hela':           'hela_(marvel)',
+    '!adamwarlock':    'adam_warlock',
+    '!moonknight':     'marc_spector',
+    '!ironfist':       'iron_fist_(marvel)',
+    '!mrfantastic':    'reed_richards',
+    '!invisiblewoman': 'susan_storm',
+    '!humantorch':     'johnny_storm',
+    '!thething':       'ben_grimm',
+    '!squirrelgirl':   'squirrel_girl',
+    '!cloak':          'tandy_bowen',
+    '!jefftheshark':   'jeff_(marvel)',
 };
 
 // ─── Command map ──────────────────────────────────────────────────────────────
 
 const COMMANDS = {
-    // Gay NSFW (RedGifs)
+    // Gay — RedGifs (this is where that content actually lives)
     '!gay':   () => searchRedgifs('gay'),
     '!bear':  () => searchRedgifs('gay bear'),
     '!twink': () => searchRedgifs('gay twink'),
     '!daddy': () => searchRedgifs('gay daddy'),
     '!yaoi':  () => searchRedgifs('yaoi'),
     '!bl':    () => searchRedgifs('boys love yaoi'),
-
-    // Marvel Rivals NSFW — populated below from RIVALS_NSFW map
 };
 
-for (const [cmd, query] of Object.entries(RIVALS_NSFW)) {
-    COMMANDS[cmd] = () => searchRedgifs(query, 40, getRivalsToken);
+// Rivals — Rule34.xxx with proper character tags
+for (const [cmd, tag] of Object.entries(RIVALS_NSFW)) {
+    COMMANDS[cmd] = () => searchRule34(tag);
 }
 
 // ─── Handler class ────────────────────────────────────────────────────────────
