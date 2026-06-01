@@ -29,7 +29,7 @@ function httpsGet(url, headers = {}) {
     });
 }
 
-// ─── RedGifs (gay commands only) ─────────────────────────────────────────────
+// ─── RedGifs (gay + general commands) ────────────────────────────────────────
 
 let _rgToken = null;
 let _rgTokenExpiry = 0;
@@ -42,9 +42,9 @@ async function getRgToken() {
     return _rgToken;
 }
 
-async function searchRedgifs(query, count = 40) {
+async function searchRedgifs(query) {
     const token = await getRgToken();
-    const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(query)}&count=${count}&order=trending`;
+    const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(query)}&count=40&order=trending`;
     const { body } = await httpsGet(url, { Authorization: `Bearer ${token}` });
     const gifs = body?.gifs;
     if (!Array.isArray(gifs) || gifs.length === 0) return null;
@@ -52,50 +52,28 @@ async function searchRedgifs(query, count = 40) {
     return gif.urls?.hd || gif.urls?.sd || `https://www.redgifs.com/watch/${gif.id}`;
 }
 
-// ─── Rule34 / Gelbooru (Rivals commands) ─────────────────────────────────────
+// ─── rule34.paheal.net (Rivals commands — no auth, XML) ──────────────────────
 
-function parsePosts(body) {
-    // Rule34 returns a bare array; Gelbooru wraps it in { post: [...] }
-    if (Array.isArray(body)) return body.filter(p => p.file_url);
-    if (body && Array.isArray(body.post)) return body.post.filter(p => p.file_url);
-    return [];
+async function searchPaheal(tag) {
+    const url = `https://rule34.paheal.net/api/danbooru/find_posts?tags=${encodeURIComponent(tag)}&limit=100`;
+    const { body } = await httpsGet(url);
+    const xml = typeof body === 'string' ? body : '';
+
+    // Pull every file_url out of the XML with a simple regex
+    const all = [];
+    const re = /file_url=['"]([^'"]+)['"]/g;
+    let m;
+    while ((m = re.exec(xml)) !== null) all.push(m[1]);
+
+    if (all.length === 0) return null;
+
+    // Prefer animated/video files
+    const media = all.filter(u => /\.(gif|mp4|webm)$/i.test(u));
+    const pool = media.length > 0 ? media : all;
+    return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function pickBest(posts) {
-    const media = posts.filter(p => /\.(gif|mp4|webm)$/i.test(p.file_url));
-    const pool = media.length > 0 ? media : posts;
-    return pool[Math.floor(Math.random() * pool.length)]?.file_url || null;
-}
-
-async function searchRule34(tag) {
-    const base = 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=';
-
-    // 1. Rule34 with animated tag
-    try {
-        const { body } = await httpsGet(base + tag + '+animated');
-        const posts = parsePosts(body);
-        if (posts.length > 0) return pickBest(posts);
-    } catch {}
-
-    // 2. Rule34 without animated (broader)
-    try {
-        const { body } = await httpsGet(base + tag);
-        const posts = parsePosts(body);
-        if (posts.length > 0) return pickBest(posts);
-    } catch {}
-
-    // 3. Gelbooru fallback
-    try {
-        const gbUrl = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=${tag}`;
-        const { body } = await httpsGet(gbUrl);
-        const posts = parsePosts(body);
-        if (posts.length > 0) return pickBest(posts);
-    } catch {}
-
-    return null;
-}
-
-// ─── Marvel Rivals hero → Rule34 tags ────────────────────────────────────────
+// ─── Marvel Rivals hero → paheal tag ─────────────────────────────────────────
 
 const RIVALS_NSFW = {
     '!ironman':        'iron_man',
@@ -131,7 +109,6 @@ const RIVALS_NSFW = {
     '!thething':       'ben_grimm',
     '!squirrelgirl':   'squirrel_girl',
     '!cloak':          'tandy_bowen',
-    '!jefftheshark':   'jeff_(marvel)',
     '!groot':          'groot',
     '!rocket':         'rocket_raccoon',
     '!mantis':         'mantis_(marvel)',
@@ -139,24 +116,39 @@ const RIVALS_NSFW = {
     '!psylocke':       'psylocke',
     '!magik':          'magik_(marvel)',
     '!emma':           'emma_frost',
-    '!mrbeast':        'mister_sinister',
 };
 
 // ─── Command map ──────────────────────────────────────────────────────────────
 
 const COMMANDS = {
-    // Gay — RedGifs (this is where that content actually lives)
-    '!gay':   () => searchRedgifs('gay'),
-    '!bear':  () => searchRedgifs('gay bear'),
-    '!twink': () => searchRedgifs('gay twink'),
-    '!daddy': () => searchRedgifs('gay daddy'),
-    '!yaoi':  () => searchRedgifs('yaoi'),
-    '!bl':    () => searchRedgifs('boys love yaoi'),
+    // ── Gay (RedGifs) ──
+    '!gay':      () => searchRedgifs('gay'),
+    '!bear':     () => searchRedgifs('gay bear'),
+    '!twink':    () => searchRedgifs('gay twink'),
+    '!daddy':    () => searchRedgifs('gay daddy'),
+    '!yaoi':     () => searchRedgifs('yaoi'),
+    '!bl':       () => searchRedgifs('boys love yaoi'),
+    '!frotting': () => searchRedgifs('frotting'),
+    '!handjob':  () => searchRedgifs('gay handjob'),
+    '!rimjob':   () => searchRedgifs('gay rimjob'),
+
+    // ── General NSFW (RedGifs) ──
+    '!cum':      () => searchRedgifs('cumshot'),
+    '!abs':      () => searchRedgifs('abs muscle'),
+    '!blowjob':  () => searchRedgifs('blowjob'),
+    '!anal':     () => searchRedgifs('anal'),
+    '!bulge':    () => searchRedgifs('bulge'),
+    '!thighs':   () => searchRedgifs('thick thighs'),
+    '!boobs':    () => searchRedgifs('big boobs'),
+    '!ass':      () => searchRedgifs('big ass'),
+    '!feet':     () => searchRedgifs('feet'),
+    '!creampie': () => searchRedgifs('creampie'),
+    '!moan':     () => searchRedgifs('moaning'),
 };
 
-// Rivals — Rule34.xxx with proper character tags
+// Marvel Rivals → paheal
 for (const [cmd, tag] of Object.entries(RIVALS_NSFW)) {
-    COMMANDS[cmd] = () => searchRule34(tag);
+    COMMANDS[cmd] = () => searchPaheal(tag);
 }
 
 // ─── Handler class ────────────────────────────────────────────────────────────
@@ -183,14 +175,13 @@ class SelfbotCommands {
 
                 const parts = content.split(/\s+/);
                 const cmd = parts[0].toLowerCase();
-                const args = parts.slice(1);
 
                 const handler = COMMANDS[cmd];
                 if (!handler) return;
 
                 try { await message.delete(); } catch {}
 
-                const result = await Promise.resolve(handler(args));
+                const result = await Promise.resolve(handler());
                 if (!result) {
                     await message.channel.send('❌ No results found.').catch(() => {});
                     return;
