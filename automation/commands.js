@@ -12,11 +12,16 @@ function httpsGet(url, headers = {}) {
             path: parsed.pathname + parsed.search,
             method: 'GET',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 ...headers
             }
         };
         const req = https.request(opts, (res) => {
+            // Follow redirects
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                return httpsGet(res.headers.location, headers).then(resolve).catch(reject);
+            }
             let data = '';
             res.on('data', c => data += c);
             res.on('end', () => {
@@ -29,7 +34,7 @@ function httpsGet(url, headers = {}) {
     });
 }
 
-// ─── RedGifs (gay + general commands) ────────────────────────────────────────
+// ─── RedGifs ──────────────────────────────────────────────────────────────────
 
 let _rgToken = null;
 let _rgTokenExpiry = 0;
@@ -43,34 +48,74 @@ async function getRgToken() {
 }
 
 async function searchRedgifs(query) {
-    const token = await getRgToken();
-    const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(query)}&count=40&order=trending`;
-    const { body } = await httpsGet(url, { Authorization: `Bearer ${token}` });
-    const gifs = body?.gifs;
-    if (!Array.isArray(gifs) || gifs.length === 0) return null;
-    const gif = gifs[Math.floor(Math.random() * gifs.length)];
-    return gif.urls?.hd || gif.urls?.sd || `https://www.redgifs.com/watch/${gif.id}`;
+    try {
+        const token = await getRgToken();
+        const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(query)}&count=40&order=trending`;
+        const { body } = await httpsGet(url, { Authorization: `Bearer ${token}` });
+        const gifs = body?.gifs;
+        if (!Array.isArray(gifs) || gifs.length === 0) return null;
+        const gif = gifs[Math.floor(Math.random() * gifs.length)];
+        return gif.urls?.hd || gif.urls?.sd || `https://www.redgifs.com/watch/${gif.id}`;
+    } catch (e) {
+        console.error('[Commands] RedGifs error:', e.message);
+        return null;
+    }
 }
 
-// ─── rule34.paheal.net (Rivals commands — no auth, XML) ──────────────────────
+// ─── Paheal → fxtwitter ───────────────────────────────────────────────────────
+// Paheal CDN URLs have no extension so Discord won't embed them.
+// But every paheal post has a source= Twitter URL — we convert those to
+// fxtwitter.com which Discord embeds natively (video + image).
+
+function toFxTwitter(url) {
+    if (!url || typeof url !== 'string') return null;
+    return url
+        .replace('https://x.com/', 'https://fxtwitter.com/')
+        .replace('https://twitter.com/', 'https://fxtwitter.com/')
+        .replace('http://x.com/', 'https://fxtwitter.com/')
+        .replace('http://twitter.com/', 'https://fxtwitter.com/');
+}
 
 async function searchPaheal(tag) {
-    const url = `https://rule34.paheal.net/api/danbooru/find_posts?tags=${encodeURIComponent(tag)}&limit=100`;
-    const { body } = await httpsGet(url);
-    const xml = typeof body === 'string' ? body : '';
+    try {
+        const url = `https://rule34.paheal.net/api/danbooru/find_posts?tags=${encodeURIComponent(tag)}&limit=100`;
+        const { body } = await httpsGet(url);
+        const xml = typeof body === 'string' ? body : '';
 
-    // Pull every file_url out of the XML with a simple regex
-    const all = [];
-    const re = /file_url=['"]([^'"]+)['"]/g;
-    let m;
-    while ((m = re.exec(xml)) !== null) all.push(m[1]);
+        if (!xml.includes('file_url')) return null;
 
-    if (all.length === 0) return null;
+        // Collect (source, file_url) pairs per post
+        const posts = [];
+        const postRe = /<tag [^>]+>/g;
+        let postMatch;
+        while ((postMatch = postRe.exec(xml)) !== null) {
+            const el = postMatch[0];
+            const fu = /file_url=['"]([^'"]+)['"]/.exec(el)?.[1] || null;
+            const src = /source=['"]([^'"]+)['"]/.exec(el)?.[1] || null;
+            if (fu || src) posts.push({ file_url: fu, source: src });
+        }
 
-    // Prefer animated/video files
-    const media = all.filter(u => /\.(gif|mp4|webm)$/i.test(u));
-    const pool = media.length > 0 ? media : all;
-    return pool[Math.floor(Math.random() * pool.length)];
+        if (posts.length === 0) return null;
+
+        // Shuffle so we don't always get the same post
+        const shuffled = posts.sort(() => Math.random() - 0.5);
+
+        // Prefer posts with a Twitter source → convert to fxtwitter
+        for (const p of shuffled) {
+            const fx = toFxTwitter(p.source);
+            if (fx) return fx;
+        }
+
+        // Fall back to file_url (Discord may embed if it can infer type)
+        for (const p of shuffled) {
+            if (p.file_url) return p.file_url;
+        }
+
+        return null;
+    } catch (e) {
+        console.error('[Commands] Paheal error:', e.message);
+        return null;
+    }
 }
 
 // ─── Marvel Rivals hero → paheal tag ─────────────────────────────────────────
@@ -121,7 +166,10 @@ const RIVALS_NSFW = {
 // ─── Command map ──────────────────────────────────────────────────────────────
 
 const COMMANDS = {
-    // ── Gay (RedGifs) ──
+    // Debug
+    '!test': () => Promise.resolve('✅ Commands are working!'),
+
+    // Gay (RedGifs)
     '!gay':      () => searchRedgifs('gay'),
     '!bear':     () => searchRedgifs('gay bear'),
     '!twink':    () => searchRedgifs('gay twink'),
@@ -130,9 +178,9 @@ const COMMANDS = {
     '!bl':       () => searchRedgifs('boys love yaoi'),
     '!frotting': () => searchRedgifs('frotting'),
     '!handjob':  () => searchRedgifs('gay handjob'),
-    '!rimjob':   () => searchRedgifs('gay rimjob'),
+    '!rimjob':   () => searchRedgifs('rimjob'),
 
-    // ── General NSFW (RedGifs) ──
+    // General NSFW (RedGifs)
     '!cum':      () => searchRedgifs('cumshot'),
     '!abs':      () => searchRedgifs('abs muscle'),
     '!blowjob':  () => searchRedgifs('blowjob'),
@@ -146,12 +194,12 @@ const COMMANDS = {
     '!moan':     () => searchRedgifs('moaning'),
 };
 
-// Marvel Rivals → paheal
+// Marvel Rivals → paheal (fxtwitter embed)
 for (const [cmd, tag] of Object.entries(RIVALS_NSFW)) {
     COMMANDS[cmd] = () => searchPaheal(tag);
 }
 
-// ─── Handler class ────────────────────────────────────────────────────────────
+// ─── Handler ──────────────────────────────────────────────────────────────────
 
 class SelfbotCommands {
     constructor(log) {
@@ -173,21 +221,29 @@ class SelfbotCommands {
                 const content = message.content?.trim() || '';
                 if (!content.startsWith('!')) return;
 
-                const parts = content.split(/\s+/);
-                const cmd = parts[0].toLowerCase();
-
+                const cmd = content.split(/\s+/)[0].toLowerCase();
                 const handler = COMMANDS[cmd];
                 if (!handler) return;
 
+                this.log(`Handling: ${cmd}`);
+
                 try { await message.delete(); } catch {}
 
-                const result = await Promise.resolve(handler());
+                let result;
+                try {
+                    result = await handler();
+                } catch (e) {
+                    this.log(`Handler error (${cmd}): ${e.message}`);
+                    result = null;
+                }
+
                 if (!result) {
-                    await message.channel.send('❌ No results found.').catch(() => {});
+                    await message.channel.send(`❌ No results found for ${cmd}.`).catch(() => {});
                     return;
                 }
-                await message.channel.send(result).catch(() => {});
-                this.log(`Ran: ${cmd}`);
+                await message.channel.send(result).catch((e) => {
+                    this.log(`Send error: ${e.message}`);
+                });
             } catch (e) {
                 this.log(`Error: ${e.message}`);
             }
