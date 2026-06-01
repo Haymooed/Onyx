@@ -272,15 +272,15 @@ const COMMAND_LIST = `\`\`\`
 !dare · !truth · !mock <text> · !uwu <text>
 !clap <text> · !hug · !slap · !bonk
 
-🌈  GAY NSFW
+🌈  GAY NSFW  (add a number for more, e.g. !gay 3)
 !gay · !bear · !twink · !daddy · !yaoi · !bl
 !frotting · !handjob · !rimjob · !cum
 
-💦  GENERAL NSFW
+💦  GENERAL NSFW  (add a number for more, e.g. !abs 5)
 !abs · !blowjob · !anal · !bulge
 !thighs · !boobs · !ass · !feet · !creampie · !moan
 
-⚔️  MARVEL RIVALS (4 images each)
+⚔️  MARVEL RIVALS  (add a number for more, e.g. !ironfist 3)
 !ironman · !spiderman · !miles · !venom
 !thor · !hulk · !shehulk · !captainamerica
 !storm · !magneto · !scarletwitch · !doctorstrange
@@ -371,34 +371,34 @@ const COMMANDS = {
         return [`*bonks ${target} on the head* 🔨 NO HORNY JAIL FOR YOU`];
     },
 
-    // Gay NSFW (RedGifs)
-    '!gay':      () => searchRedgifs('gay'),
-    '!bear':     () => searchRedgifs('gay bear'),
-    '!twink':    () => searchRedgifs('gay twink'),
-    '!daddy':    () => searchRedgifs('gay daddy'),
-    '!yaoi':     () => searchRedgifs('yaoi'),
-    '!bl':       () => searchRedgifs('boys love yaoi'),
-    '!frotting': () => searchRedgifs('frotting gay'),
-    '!handjob':  () => searchRedgifs('gay handjob'),
-    '!rimjob':   () => searchRedgifs('gay rimjob'),
-    '!cum':      () => searchRedgifs('gay cumshot cumming'),
+    // Gay NSFW (RedGifs) — n passed from dispatcher
+    '!gay':      (msg, client, n) => searchRedgifs('gay', n),
+    '!bear':     (msg, client, n) => searchRedgifs('gay bear', n),
+    '!twink':    (msg, client, n) => searchRedgifs('gay twink', n),
+    '!daddy':    (msg, client, n) => searchRedgifs('gay daddy', n),
+    '!yaoi':     (msg, client, n) => searchRedgifs('yaoi', n),
+    '!bl':       (msg, client, n) => searchRedgifs('boys love yaoi', n),
+    '!frotting': (msg, client, n) => searchRedgifs('frotting gay', n),
+    '!handjob':  (msg, client, n) => searchRedgifs('gay handjob', n),
+    '!rimjob':   (msg, client, n) => searchRedgifs('gay rimjob', n),
+    '!cum':      (msg, client, n) => searchRedgifs('gay cumshot cumming', n),
 
     // General NSFW (RedGifs)
-    '!abs':      () => searchRedgifs('abs muscle'),
-    '!blowjob':  () => searchRedgifs('blowjob'),
-    '!anal':     () => searchRedgifs('anal'),
-    '!bulge':    () => searchRedgifs('bulge'),
-    '!thighs':   () => searchRedgifs('thick thighs'),
-    '!boobs':    () => searchRedgifs('big boobs'),
-    '!ass':      () => searchRedgifs('big ass'),
-    '!feet':     () => searchRedgifs('feet'),
-    '!creampie': () => searchRedgifs('creampie'),
-    '!moan':     () => searchRedgifs('moaning'),
+    '!abs':      (msg, client, n) => searchRedgifs('abs muscle', n),
+    '!blowjob':  (msg, client, n) => searchRedgifs('blowjob', n),
+    '!anal':     (msg, client, n) => searchRedgifs('anal', n),
+    '!bulge':    (msg, client, n) => searchRedgifs('bulge', n),
+    '!thighs':   (msg, client, n) => searchRedgifs('thick thighs', n),
+    '!boobs':    (msg, client, n) => searchRedgifs('big boobs', n),
+    '!ass':      (msg, client, n) => searchRedgifs('big ass', n),
+    '!feet':     (msg, client, n) => searchRedgifs('feet', n),
+    '!creampie': (msg, client, n) => searchRedgifs('creampie', n),
+    '!moan':     (msg, client, n) => searchRedgifs('moaning', n),
 };
 
-// Marvel Rivals → paheal + RedGifs fallback
+// Marvel Rivals → paheal + RedGifs fallback, n passed from dispatcher
 for (const [cmd, [pahealTag, rgFallback]] of Object.entries(RIVALS_NSFW)) {
-    COMMANDS[cmd] = () => searchRivals(pahealTag, rgFallback, 4);
+    COMMANDS[cmd] = (msg, client, n) => searchRivals(pahealTag, rgFallback, n);
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -423,16 +423,20 @@ class SelfbotCommands {
                 const content = message.content?.trim() || '';
                 if (!content.startsWith('!')) return;
 
-                const cmd = content.split(/\s+/)[0].toLowerCase();
+                const parts = content.split(/\s+/);
+                const cmd = parts[0].toLowerCase();
                 const handler = COMMANDS[cmd];
                 if (!handler) return;
 
-                this.log(`Handling: ${cmd}`);
+                // Optional count arg: !ironfist 3 → send 3, default 1, max 10
+                const n = Math.min(Math.max(parseInt(parts[1]) || 1, 1), 10);
+
+                this.log(`Handling: ${cmd} (n=${n})`);
                 try { await message.delete(); } catch {}
 
                 let results;
                 try {
-                    results = await handler(message, client);
+                    results = await handler(message, client, n);
                 } catch (e) {
                     this.log(`Handler error (${cmd}): ${e.message}`);
                     results = [];
