@@ -23,6 +23,7 @@ const giveawaySniper = require('./automation/giveawaySniper');
 const { checkTokens } = require('./automation/tokenChecker');
 const autoBump = require('./automation/autoBump');
 const friendFarmer = require('./automation/friendFarmer');
+const { SelfbotCommands } = require('./automation/commands');
 
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
@@ -249,6 +250,7 @@ let lastActivityTime = Date.now();
 
 const messageScheduler = new MessageScheduler(() => discordClient);
 const autoFeatures = new AutoFeatures();
+const selfbotCommands = new SelfbotCommands();
 
 function isHttpUrl(u) {
     return typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'));
@@ -408,6 +410,7 @@ function stopClient() {
     try { giveawaySniper.detach(); } catch {}
     try { autoBump.detach(); } catch {}
     try { friendFarmer.stop(); } catch {}
+    try { selfbotCommands.unbind(); } catch {}
 
     if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -458,9 +461,11 @@ async function connectClient(token) {
             autoFeatures.setWebhookFn((payload) => sendWebhook(settings.webhookUrl, payload));
             autoFeatures.bind(discordClient);
         } catch (e) { console.error('[Auto] bind:', e.message); }
+<<<<<<< Updated upstream
         try { nitroSniper.attach(discordClient); } catch (e) { console.error('[NitroSniper] attach:', e.message); }
         try { giveawaySniper.attach(discordClient); } catch (e) { console.error('[GiveawaySniper] attach:', e.message); }
         try { autoBump.attach(discordClient); } catch (e) { console.error('[AutoBump] attach:', e.message); }
+        try { selfbotCommands.bind(discordClient); } catch (e) { console.error('[Commands] bind:', e.message); }
 
         // Start presence rotation / idle spoof from saved settings
         try {
