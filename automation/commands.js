@@ -147,7 +147,7 @@ const COMPLIMENTS = [
     "You're the reason this server stays alive.",
     'Goated with the sauce, no cap.',
     "If loyalty had a face, it'd be yours.",
-    'You could make anyone's day better just by existing.',
+    "You could make anyone's day better just by existing.",
     "Sharp as a tack and twice as cool.",
 ];
 
