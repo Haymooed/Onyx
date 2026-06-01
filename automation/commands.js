@@ -52,32 +52,47 @@ async function searchRedgifs(query, count = 40) {
     return gif.urls?.hd || gif.urls?.sd || `https://www.redgifs.com/watch/${gif.id}`;
 }
 
-// ─── Rule34.xxx (Rivals commands) ────────────────────────────────────────────
+// ─── Rule34 / Gelbooru (Rivals commands) ─────────────────────────────────────
 
-async function searchRule34(tags) {
-    // Try animated/video first for better content
-    const animated = encodeURIComponent(tags + ' animated');
-    const base = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=`;
+function parsePosts(body) {
+    // Rule34 returns a bare array; Gelbooru wraps it in { post: [...] }
+    if (Array.isArray(body)) return body.filter(p => p.file_url);
+    if (body && Array.isArray(body.post)) return body.post.filter(p => p.file_url);
+    return [];
+}
 
-    let { body } = await httpsGet(base + animated);
-    let posts = Array.isArray(body) ? body : [];
+function pickBest(posts) {
+    const media = posts.filter(p => /\.(gif|mp4|webm)$/i.test(p.file_url));
+    const pool = media.length > 0 ? media : posts;
+    return pool[Math.floor(Math.random() * pool.length)]?.file_url || null;
+}
 
-    // Fall back to any content if no animated results
-    if (posts.length === 0) {
-        ({ body } = await httpsGet(base + encodeURIComponent(tags)));
-        posts = Array.isArray(body) ? body : [];
-    }
+async function searchRule34(tag) {
+    const base = 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=';
 
-    if (posts.length === 0) return null;
+    // 1. Rule34 with animated tag
+    try {
+        const { body } = await httpsGet(base + tag + '+animated');
+        const posts = parsePosts(body);
+        if (posts.length > 0) return pickBest(posts);
+    } catch {}
 
-    // Prefer actual video/gif files
-    const media = posts.filter(p =>
-        p.file_url && /\.(gif|mp4|webm)$/i.test(p.file_url)
-    );
-    const pool = media.length > 0 ? media : posts.filter(p => p.file_url);
-    if (pool.length === 0) return null;
+    // 2. Rule34 without animated (broader)
+    try {
+        const { body } = await httpsGet(base + tag);
+        const posts = parsePosts(body);
+        if (posts.length > 0) return pickBest(posts);
+    } catch {}
 
-    return pool[Math.floor(Math.random() * pool.length)].file_url;
+    // 3. Gelbooru fallback
+    try {
+        const gbUrl = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&limit=100&tags=${tag}`;
+        const { body } = await httpsGet(gbUrl);
+        const posts = parsePosts(body);
+        if (posts.length > 0) return pickBest(posts);
+    } catch {}
+
+    return null;
 }
 
 // ─── Marvel Rivals hero → Rule34 tags ────────────────────────────────────────
@@ -117,6 +132,14 @@ const RIVALS_NSFW = {
     '!squirrelgirl':   'squirrel_girl',
     '!cloak':          'tandy_bowen',
     '!jefftheshark':   'jeff_(marvel)',
+    '!groot':          'groot',
+    '!rocket':         'rocket_raccoon',
+    '!mantis':         'mantis_(marvel)',
+    '!nebula':         'nebula_(marvel)',
+    '!psylocke':       'psylocke',
+    '!magik':          'magik_(marvel)',
+    '!emma':           'emma_frost',
+    '!mrbeast':        'mister_sinister',
 };
 
 // ─── Command map ──────────────────────────────────────────────────────────────
