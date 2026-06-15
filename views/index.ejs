@@ -304,6 +304,10 @@ td.dim{color:var(--text-2);font-size:12px}
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       <span>Friend Farmer</span>
     </div>
+    <div data-sec="voice" class="nav-item" onclick="showSection(this)">
+      <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span>VC AFK</span>
+    </div>
     <div class="nav-sep"></div>
     <div data-sec="settings" class="nav-item" onclick="showSection(this)">
       <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -896,6 +900,48 @@ td.dim{color:var(--text-2);font-size:12px}
   </div>
 </div>
 
+
+<div id="sec-voice" class="section">
+  <div class="grid-3" style="margin-bottom:12px">
+    <div class="stat-card"><div class="stat-val" id="voiceState">—</div><div class="stat-lbl">Voice State</div></div>
+    <div class="stat-card"><div class="stat-val" id="voiceMuteState">—</div><div class="stat-lbl">Mute</div></div>
+    <div class="stat-card"><div class="stat-val" id="voiceDeafState">—</div><div class="stat-lbl">Deafen</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">VC AFK Lobby</div>
+        <button class="btn btn-ghost" onclick="loadVoiceChannels()" style="padding:5px 10px;font-size:12px">↻ Refresh Channels</button>
+      </div>
+      <div class="form-gap">
+        <div class="field"><label>Voice Channel ID</label><input type="text" id="voiceChannelId" placeholder="Right-click VC → Copy Channel ID"></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Join muted</div><div class="toggle-desc">Keeps your mic muted while you sit AFK.</div></div><div class="toggle on" id="voiceMuteToggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Join deafened</div><div class="toggle-desc">Optional: deafen yourself too.</div></div><div class="toggle" id="voiceDeafToggle" onclick="this.classList.toggle('on')"></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="joinVoiceAfk()">Join / Stay AFK</button>
+          <button class="btn btn-ghost" onclick="setVoiceAfkState('mute')" id="voiceMuteBtn">Mute Myself</button>
+          <button class="btn btn-ghost" onclick="setVoiceAfkState('deaf')" id="voiceDeafBtn">Deafen</button>
+          <button class="btn btn-danger" onclick="leaveVoiceAfk()">Leave VC</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-2)">Pick a voice channel below or paste a channel ID manually.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Current VC</div>
+      <div id="voiceStatusBox" style="font-size:13px;color:var(--text-2);line-height:1.8">Loading…</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Server Voice Channels</div>
+      <button class="btn btn-ghost" onclick="loadVoiceChannels()" style="padding:5px 10px;font-size:12px">↻ Refresh</button>
+    </div>
+    <div id="voiceChannelBrowser" class="form-gap">
+      <div style="color:var(--text-2);font-size:13px;text-align:center;padding:18px">Connect your account, then open this page to load voice channels.</div>
+    </div>
+  </div>
+</div>
+
 <div id="sec-settings" class="section">
   <div class="grid-4" style="margin-bottom:12px">
     <div class="stat-card"><div class="stat-val">1.6.0</div><div class="stat-lbl">Version</div></div>
@@ -996,6 +1042,7 @@ function showSection(el){
   if(sec==='giveaway')loadGiveaway()
   if(sec==='bump')loadBump()
   if(sec==='friends')loadFriends()
+  if(sec==='voice'){loadVoiceStatus();loadVoiceChannels()}
   if(sec==='settings'){loadQuestHistory();loadAccountsForSettings();loadLicenseInfo()}
   if(sec==='dashboard')loadDashboard()
 }
@@ -1143,6 +1190,49 @@ function renderRotList(list){document.getElementById('rotList').innerHTML=list.m
 function addKeyword(){const kw=gv('kwInput').trim();if(!kw)return;if(!settings.keywordAlerts)settings.keywordAlerts={enabled:false,keywords:[]};settings.keywordAlerts.keywords.push(kw);renderKwList(settings.keywordAlerts.keywords);sv('kwInput','')}
 function removeKeyword(i){settings.keywordAlerts.keywords.splice(i,1);renderKwList(settings.keywordAlerts.keywords)}
 function renderKwList(list){document.getElementById('kwList').innerHTML=list.map((k,i)=>`<div class="item-row"><span class="it">${e(k)}</span><button class="icon-btn del" onclick="removeKeyword(${i})"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>`).join('')||'<div style="color:var(--text-3);font-size:12px;text-align:center;padding:8px">No keywords</div>'}
+
+
+// ── VC AFK ──────────────────────────────────────────────────────────────────
+let voiceStatusCache=null, voiceGuildsCache=[];
+
+function renderVoiceChannels(guilds){
+  voiceGuildsCache=guilds||[];
+  const box=document.getElementById('voiceChannelBrowser');
+  if(!box)return;
+  if(!voiceGuildsCache.length){box.innerHTML='<div style="color:var(--text-2);font-size:13px;text-align:center;padding:18px">No accessible voice channels found.</div>';return}
+  box.innerHTML=voiceGuildsCache.map(g=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="server-icon" style="width:34px;height:34px;border-radius:10px;font-size:13px">${g.icon?`<img src="${e(g.icon)}" onerror="this.parentElement.textContent='${initials(g.name)}'">`:initials(g.name)}</div>
+      <div style="font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e(g.name)}</div>
+      <span class="badge badge-gray">${g.channels.length} VC</span>
+    </div>
+    <div class="item-list">${g.channels.map(c=>`<div class="item-row">
+      <span class="im">${c.type==='GUILD_STAGE_VOICE'?'Stage':'Voice'}</span>
+      <span class="it">${e(c.name)}</span>
+      <span class="im">${c.members}${c.userLimit?`/${c.userLimit}`:''}</span>
+      <button class="btn-sm primary" style="flex:0 0 auto" onclick="selectVoiceChannel('${c.id}')">Select</button>
+      <button class="btn-sm" style="flex:0 0 auto" onclick="joinVoiceAfk('${c.id}')">Join</button>
+    </div>`).join('')}</div>
+  </div>`).join('');
+}
+async function loadVoiceChannels(){try{const r=await fetch('/api/voice/channels');const d=await r.json();if(d.success)renderVoiceChannels(d.guilds);else document.getElementById('voiceChannelBrowser').innerHTML=`<div style="color:var(--red);font-size:13px;text-align:center;padding:18px">${e(d.error||'Failed to load voice channels')}</div>`}catch{document.getElementById('voiceChannelBrowser').innerHTML='<div style="color:var(--red);font-size:13px;text-align:center;padding:18px">Failed to load voice channels</div>'}}
+function selectVoiceChannel(channelId){sv('voiceChannelId',channelId);toast('Voice channel selected','info')}
+function renderVoiceStatus(sts){
+  voiceStatusCache=sts||{};
+  document.getElementById('voiceState').textContent=sts.connected?'In VC':'Offline';
+  document.getElementById('voiceMuteState').textContent=sts.selfMute?'Muted':'Live';
+  document.getElementById('voiceDeafState').textContent=sts.selfDeaf?'Deaf':'Hearing';
+  st('voiceMuteToggle',sts.selfMute!==false);st('voiceDeafToggle',!!sts.selfDeaf);
+  if(sts.channelId)sv('voiceChannelId',sts.channelId);
+  document.getElementById('voiceMuteBtn').textContent=sts.selfMute?'Unmute Myself':'Mute Myself';
+  document.getElementById('voiceDeafBtn').textContent=sts.selfDeaf?'Undeafen':'Deafen';
+  const joined=sts.joinedAt?new Date(sts.joinedAt).toLocaleString():'—';
+  document.getElementById('voiceStatusBox').innerHTML=`<div><span class="badge ${sts.connected?'badge-green':'badge-gray'}">${sts.connected?'Connected':'Not Connected'}</span></div><div><b style="color:var(--text)">Channel:</b> ${e(sts.channelName||sts.channelId||'—')}</div><div><b style="color:var(--text)">Server:</b> ${e(sts.guildName||sts.guildId||'—')}</div><div><b style="color:var(--text)">Joined:</b> ${e(joined)}</div>${sts.lastError?`<div style="color:var(--red)"><b>Last error:</b> ${e(sts.lastError)}</div>`:''}`;
+}
+async function loadVoiceStatus(){try{const r=await fetch('/api/voice/status');const d=await r.json();if(d.success)renderVoiceStatus(d.status);else toast(d.error||'Voice status failed','err')}catch{toast('Voice status failed','err')}}
+async function joinVoiceAfk(selectedChannelId){const channelId=String(selectedChannelId||gv('voiceChannelId')).trim();if(!channelId){toast('Enter a voice channel ID','err');return}try{const r=await fetch('/api/voice/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channelId,selfMute:on('voiceMuteToggle'),selfDeaf:on('voiceDeafToggle')})});const d=await r.json();if(d.success){renderVoiceStatus(d.status);toast('Joined VC AFK','ok')}else toast(d.error||'Join failed','err')}catch{toast('Join failed','err')}}
+async function setVoiceAfkState(kind){const payload={};if(kind==='mute')payload.selfMute=!(voiceStatusCache?.selfMute);if(kind==='deaf')payload.selfDeaf=!(voiceStatusCache?.selfDeaf);try{const r=await fetch('/api/voice/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(d.success){renderVoiceStatus(d.status);toast('Voice state updated','ok')}else toast(d.error||'Update failed','err')}catch{toast('Update failed','err')}}
+async function leaveVoiceAfk(){try{const r=await fetch('/api/voice/leave',{method:'POST'});const d=await r.json();if(d.success){renderVoiceStatus(d.status);toast('Left VC','info')}else toast(d.error||'Leave failed','err')}catch{toast('Leave failed','err')}}
 
 // ── DM Inbox ──────────────────────────────────────────────────────────────────
 async function loadDMs(){
