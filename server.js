@@ -236,6 +236,8 @@ function sendWebhook(url, payload) {
 // Discord presence
 // ─────────────────────────────────────────────────────────────────────────────
 let discordClient = null;
+let voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+let voiceAfkRejoinTimer = null;
 let clientState = 'disconnected';
 let clientError = '';
 let currentTag = '';
@@ -424,6 +426,16 @@ function stopClient() {
         configWatcher = null;
     }
 
+    if (voiceAfkRejoinTimer) {
+        clearTimeout(voiceAfkRejoinTimer);
+        voiceAfkRejoinTimer = null;
+    }
+
+    if (voiceAfkState.connection) {
+        try { voiceAfkState.connection.disconnect(); } catch {}
+        voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+    }
+
     if (discordClient) {
         try {
             discordClient.destroy();
@@ -478,6 +490,11 @@ async function connectClient(token) {
         } catch (e) { console.error('[Settings] startup:', e.message); }
 
         try { scheduleDaily(discordClient); } catch (e) { console.error('[KeyReset] Schedule error:', e.message); }
+
+        discordClient.on('voiceStateUpdate', (oldState, newState) => {
+            if (newState?.id !== discordClient.user?.id && oldState?.id !== discordClient.user?.id) return;
+            handleVoiceAfkStateChange(oldState, newState);
+        });
 
         refreshInterval = setInterval(() => {
             applyPresence().catch(() => {});
@@ -1338,6 +1355,168 @@ app.post('/api/friends/stop', (req, res) => {
     res.json({ success: true });
 });
 
+
+// ── Voice AFK ────────────────────────────────────────────────────────────────
+async function joinVoiceAfkChannel(channelId, options = {}) {
+    const channel = await discordClient.channels.fetch(channelId);
+    if (!channel?.isVoice?.()) throw new Error('That ID is not a voice/stage channel');
+
+    const selfMute = options.selfMute !== false;
+    const selfDeaf = !!options.selfDeaf;
+    const connection = await discordClient.voice.joinChannel(channel, { selfMute, selfDeaf });
+    voiceAfkState = {
+        enabled: true,
+        connection,
+        channelId: channel.id,
+        guildId: channel.guild?.id || '',
+        selfMute,
+        selfDeaf,
+        joinedAt: voiceAfkState.channelId === channel.id && voiceAfkState.joinedAt ? voiceAfkState.joinedAt : Date.now(),
+        lastError: ''
+    };
+    return connection;
+}
+
+function scheduleVoiceAfkRejoin(reason = 'voice state changed') {
+    if (!discordClient || clientState !== 'connected' || !voiceAfkState.enabled || !voiceAfkState.channelId) return;
+    if (voiceAfkRejoinTimer) clearTimeout(voiceAfkRejoinTimer);
+
+    voiceAfkRejoinTimer = setTimeout(async () => {
+        voiceAfkRejoinTimer = null;
+        try {
+            await joinVoiceAfkChannel(voiceAfkState.channelId, {
+                selfMute: voiceAfkState.selfMute,
+                selfDeaf: voiceAfkState.selfDeaf
+            });
+        } catch (e) {
+            voiceAfkState.lastError = `Auto-rejoin failed after ${reason}: ${e.message}`;
+            console.error('[VoiceAFK] Auto-rejoin:', e.message);
+        }
+    }, 1500);
+}
+
+function handleVoiceAfkStateChange(oldState, newState) {
+    if (!voiceAfkState.enabled || !voiceAfkState.channelId) return;
+
+    const oldChannelId = oldState?.channelId || null;
+    const newChannelId = newState?.channelId || null;
+    if (oldChannelId === newChannelId) return;
+    if (newChannelId !== voiceAfkState.channelId) scheduleVoiceAfkRejoin(newChannelId ? 'move' : 'disconnect');
+}
+
+function listVoiceAfkGuilds() {
+    return discordClient.guilds.cache
+        .map(guild => {
+            const channels = guild.channels.cache
+                .filter(channel => channel?.isVoice?.())
+                .sort((a, b) => (a.rawPosition ?? a.position ?? 0) - (b.rawPosition ?? b.position ?? 0))
+                .map(channel => ({
+                    id: channel.id,
+                    name: channel.name,
+                    type: channel.type,
+                    userLimit: channel.userLimit || 0,
+                    members: channel.members?.size || 0
+                }));
+
+            return {
+                id: guild.id,
+                name: guild.name,
+                icon: guild.iconURL?.({ format: 'png', size: 64 }) || null,
+                channels
+            };
+        })
+        .filter(guild => guild.channels.length)
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getVoiceAfkStatus() {
+    const connection = discordClient?.voice?.connection || voiceAfkState.connection;
+    const channel = connection?.channel || (voiceAfkState.channelId ? discordClient?.channels.cache.get(voiceAfkState.channelId) : null);
+    const voice = connection?.voice || null;
+    const connected = !!connection && !!channel;
+
+    if (!connected && voiceAfkState.connection) voiceAfkState.connection = null;
+
+    return {
+        enabled: voiceAfkState.enabled,
+        connected,
+        channelId: channel?.id || voiceAfkState.channelId || '',
+        channelName: channel?.name || '',
+        guildId: channel?.guild?.id || voiceAfkState.guildId || '',
+        guildName: channel?.guild?.name || '',
+        selfMute: voice?.selfMute ?? voiceAfkState.selfMute,
+        selfDeaf: voice?.selfDeaf ?? voiceAfkState.selfDeaf,
+        joinedAt: voiceAfkState.joinedAt,
+        lastError: voiceAfkState.lastError || ''
+    };
+}
+
+app.get('/api/voice/status', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    res.json({ success: true, status: getVoiceAfkStatus() });
+});
+
+app.get('/api/voice/channels', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+    res.json({ success: true, guilds: listVoiceAfkGuilds() });
+});
+
+app.post('/api/voice/join', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+
+    try {
+        const channelId = String(req.body?.channelId || '').trim();
+        if (!/^\d{15,25}$/.test(channelId)) return res.json({ success: false, error: 'Valid voice channel ID required' });
+
+        await joinVoiceAfkChannel(channelId, {
+            selfMute: req.body?.selfMute !== false,
+            selfDeaf: !!req.body?.selfDeaf
+        });
+        res.json({ success: true, status: getVoiceAfkStatus() });
+    } catch (e) {
+        voiceAfkState.lastError = e.message;
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/voice/state', async (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    if (!requireConnected(res)) return;
+
+    try {
+        const connection = discordClient.voice?.connection || voiceAfkState.connection;
+        if (!connection) return res.json({ success: false, error: 'Not in a voice channel' });
+
+        if (typeof req.body?.selfMute === 'boolean') voiceAfkState.selfMute = req.body.selfMute;
+        if (typeof req.body?.selfDeaf === 'boolean') voiceAfkState.selfDeaf = req.body.selfDeaf;
+
+        await connection.sendVoiceStateUpdate({
+            self_mute: voiceAfkState.selfMute,
+            self_deaf: voiceAfkState.selfDeaf
+        });
+        voiceAfkState.lastError = '';
+        res.json({ success: true, status: getVoiceAfkStatus() });
+    } catch (e) {
+        voiceAfkState.lastError = e.message;
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/voice/leave', (req, res) => {
+    if (isVercel) return res.status(403).json({ success: false, error: 'Access Denied' });
+    try {
+        const connection = discordClient?.voice?.connection || voiceAfkState.connection;
+        voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+        if (voiceAfkRejoinTimer) { clearTimeout(voiceAfkRejoinTimer); voiceAfkRejoinTimer = null; }
+        if (connection) connection.disconnect();
+        res.json({ success: true, status: getVoiceAfkStatus() });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Customer portal (public — no auth)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1414,6 +1593,15 @@ process.on('SIGINT', () => {
             configWatcher.close();
         } catch {}
     }
+    if (voiceAfkRejoinTimer) {
+        clearTimeout(voiceAfkRejoinTimer);
+        voiceAfkRejoinTimer = null;
+    }
+    if (voiceAfkState.connection) {
+        try { voiceAfkState.connection.disconnect(); } catch {}
+        voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+    }
+
     if (discordClient) {
         try {
             discordClient.destroy();
