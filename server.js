@@ -28,6 +28,7 @@ const { SelfbotCommands } = require('./automation/commands');
 const app = express();
 const CONFIG_PATH = path.join(__dirname, 'config.yml');
 const SETTINGS_PATH = path.join(__dirname, 'data', 'settings.json');
+const PERSISTENCE_PATH = path.join(__dirname, 'data', 'persistence.json');
 const HISTORY_PATH = path.join(__dirname, 'data', 'quest-history.json');
 const ACCOUNTS_PATH = path.join(__dirname, 'data', 'accounts.json');
 const LICENSE_PATH = path.join(__dirname, 'data', 'license.json');
@@ -237,6 +238,24 @@ function sendWebhook(url, payload) {
 // ─────────────────────────────────────────────────────────────────────────────
 let discordClient = null;
 let voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+
+function loadPersistence() {
+    try {
+        if (!fs.existsSync(PERSISTENCE_PATH)) return {};
+        return JSON.parse(fs.readFileSync(PERSISTENCE_PATH, 'utf8'));
+    } catch { return {}; }
+}
+
+function savePersistence(key, data) {
+    if (isVercel) return;
+    try {
+        const full = loadPersistence();
+        full[key] = { ...full[key], ...data };
+        const dir = path.dirname(PERSISTENCE_PATH);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(PERSISTENCE_PATH, JSON.stringify(full, null, 2));
+    } catch (e) { console.error('[Persistence] Save error:', e.message); }
+}
 let voiceAfkRejoinTimer = null;
 let clientState = 'disconnected';
 let clientError = '';
@@ -473,8 +492,17 @@ async function connectClient(token) {
             autoFeatures.setWebhookFn((payload) => sendWebhook(settings.webhookUrl, payload));
             autoFeatures.bind(discordClient);
         } catch (e) { console.error('[Auto] bind:', e.message); }
-        try { nitroSniper.attach(discordClient); } catch (e) { console.error('[NitroSniper] attach:', e.message); }
-        try { giveawaySniper.attach(discordClient); } catch (e) { console.error('[GiveawaySniper] attach:', e.message); }
+        try {
+            const p = loadPersistence();
+            nitroSniper.enabled = !!p.nitroSniper?.enabled;
+            nitroSniper.attach(discordClient);
+        } catch (e) { console.error('[NitroSniper] attach:', e.message); }
+        try {
+            const p = loadPersistence();
+            giveawaySniper.enabled = !!p.giveawaySniper?.enabled;
+            giveawaySniper.delay = parseInt(p.giveawaySniper?.delay) || 0;
+            giveawaySniper.attach(discordClient);
+        } catch (e) { console.error('[GiveawaySniper] attach:', e.message); }
         try { autoBump.attach(discordClient); } catch (e) { console.error('[AutoBump] attach:', e.message); }
         try { selfbotCommands.bind(discordClient); } catch (e) { console.error('[Commands] bind:', e.message); }
 
@@ -490,6 +518,21 @@ async function connectClient(token) {
         } catch (e) { console.error('[Settings] startup:', e.message); }
 
         try { scheduleDaily(discordClient); } catch (e) { console.error('[KeyReset] Schedule error:', e.message); }
+
+        // Restore voice AFK
+        try {
+            const p = loadPersistence();
+            if (p.voiceAfk?.enabled && p.voiceAfk.channelId) {
+                console.log(`[VoiceAFK] Restoring connection to ${p.voiceAfk.channelId}...`);
+                joinVoiceAfkChannel(p.voiceAfk.channelId, {
+                    selfMute: p.voiceAfk.selfMute,
+                    selfDeaf: p.voiceAfk.selfDeaf
+                }).catch(err => {
+                    console.error('[VoiceAFK] Restore failed:', err.message);
+                    voiceAfkState.lastError = `Restore failed: ${err.message}`;
+                });
+            }
+        } catch (e) { console.error('[VoiceAFK] startup:', e.message); }
 
         discordClient.on('voiceStateUpdate', (oldState, newState) => {
             if (newState?.id !== discordClient.user?.id && oldState?.id !== discordClient.user?.id) return;
@@ -1296,6 +1339,7 @@ app.get('/api/nitro/status', (req, res) => {
 });
 app.post('/api/nitro/toggle', (req, res) => {
     nitroSniper.enabled = !nitroSniper.enabled;
+    savePersistence('nitroSniper', { enabled: nitroSniper.enabled });
     res.json({ success: true, enabled: nitroSniper.enabled });
 });
 app.delete('/api/nitro/log', (req, res) => {
@@ -1310,10 +1354,12 @@ app.get('/api/giveaway/status', (req, res) => {
 });
 app.post('/api/giveaway/toggle', (req, res) => {
     giveawaySniper.enabled = !giveawaySniper.enabled;
+    savePersistence('giveawaySniper', { enabled: giveawaySniper.enabled });
     res.json({ success: true, enabled: giveawaySniper.enabled });
 });
 app.post('/api/giveaway/delay', (req, res) => {
     giveawaySniper.delay = Math.max(0, parseInt(req.body?.delay) || 0);
+    savePersistence('giveawaySniper', { delay: giveawaySniper.delay });
     res.json({ success: true, delay: giveawaySniper.delay });
 });
 
@@ -1332,7 +1378,7 @@ app.get('/api/bump/status', (req, res) => {
     res.json({ success: true, enabled: autoBump.enabled, nextBumpAt: autoBump.nextBumpAt, log: autoBump.log });
 });
 app.post('/api/bump/toggle', (req, res) => {
-    autoBump.enabled = !autoBump.enabled;
+    autoBump.updateEnabled(!autoBump.enabled);
     res.json({ success: true, enabled: autoBump.enabled });
 });
 app.post('/api/bump/now', async (req, res) => {
@@ -1374,6 +1420,13 @@ async function joinVoiceAfkChannel(channelId, options = {}) {
         joinedAt: voiceAfkState.channelId === channel.id && voiceAfkState.joinedAt ? voiceAfkState.joinedAt : Date.now(),
         lastError: ''
     };
+    savePersistence('voiceAfk', {
+        enabled: true,
+        channelId: channel.id,
+        guildId: voiceAfkState.guildId,
+        selfMute,
+        selfDeaf
+    });
     return connection;
 }
 
@@ -1509,6 +1562,7 @@ app.post('/api/voice/leave', (req, res) => {
     try {
         const connection = discordClient?.voice?.connection || voiceAfkState.connection;
         voiceAfkState = { enabled: false, connection: null, channelId: '', guildId: '', selfMute: true, selfDeaf: false, joinedAt: null, lastError: '' };
+        savePersistence('voiceAfk', { enabled: false, channelId: '', guildId: '' });
         if (voiceAfkRejoinTimer) { clearTimeout(voiceAfkRejoinTimer); voiceAfkRejoinTimer = null; }
         if (connection) connection.disconnect();
         res.json({ success: true, status: getVoiceAfkStatus() });
